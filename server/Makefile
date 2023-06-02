@@ -1,6 +1,6 @@
 run:
 	scripts/run.sh
-	
+
 server:
 	uvicorn server:app --reload
 
@@ -9,6 +9,9 @@ setup:
 
 type-check:
 	mypy .
+
+update-prisma:
+	prisma generate --generator=python && prisma db push
 
 docker-build-local:
 	docker build --tag server_image_local .
