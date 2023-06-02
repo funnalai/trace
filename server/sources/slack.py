@@ -3,11 +3,12 @@ import os
 from dotenv import load_dotenv
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
-from langchain.llms import OpenAI
 
+from langchain.llms import OpenAI
+from langchain import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain.docstore.document import Document
-from langchain.text_splitter import CharacterTextSplitter
+
 
 load_dotenv()
 
@@ -17,9 +18,17 @@ def summarize_conversation(raw_conv):
     """
     # return ""
     llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
-    summarize_chain = load_summarize_chain(llm, chain_type="map_reduce")
-    message_texts = [msg["text"] for msg in raw_conv]
+    message_texts = [msg['user'] + ": " + msg["text"] for msg in raw_conv]
     docs = [Document(page_content=text) for text in message_texts]
+
+    prompt = """
+    Write a concise summary of the following, assigning actions and
+    "{text}"
+    CONCISE SUMMARY:
+    """
+    prompt_template = PromptTemplate(template=prompt, input_variables=["text"])
+
+    summarize_chain = load_summarize_chain(llm, chain_type="stuff", prompt=prompt_template)
     summary = summarize_chain.run(docs)
     return summary
 
@@ -99,6 +108,7 @@ async def get_slack_data(channel):
 
             # Summarize the conversation
             summary = summarize_conversation(raw_messages)
+            print(summary)
 
             # Transform the thread into a processed conversation dictionary
             processed_conversation = {
