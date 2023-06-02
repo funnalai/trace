@@ -8,10 +8,11 @@ def summarize_conversation(conversation):
     """
     Summarize a conversation based on its raw messages
     """
-    #TODO
+    # TODO
     pass
 
-def get_slack_data(channel):
+
+async def get_slack_data(channel):
     """
     Fetch data from the linear API based on the query string queryStr
     """
@@ -49,7 +50,8 @@ def get_slack_data(channel):
 
             # Transform the message into a raw message dictionary and add it to the list
             raw_message = {
-                "id": int(message["ts"].replace(".", "")),  # Use the timestamp as a unique ID
+                # Use the timestamp as a unique ID
+                "id": int(message["ts"].replace(".", "")),
                 "text": message["text"],
                 "time": datetime.datetime.fromtimestamp(float(message["ts"])),
                 "user": message["user"],
@@ -62,33 +64,39 @@ def get_slack_data(channel):
 
             # If the message has replies, fetch them and update the conversation's end time
             if "thread_ts" in message:
-                thread_result = client.conversations_replies(channel=channel, ts=message["thread_ts"])
+                thread_result = client.conversations_replies(
+                    channel=channel, ts=message["thread_ts"])
                 for reply in thread_result["messages"]:
                     if reply["ts"] == message["ts"]:
                         continue  # Skip the message itself
 
                     # Transform each reply into a raw message dictionary and add it to the list
                     reply_raw_message = {
-                        "id": int(reply["ts"].replace(".", "")),  # Use the timestamp as a unique ID
+                        # Use the timestamp as a unique ID
+                        "id": int(reply["ts"].replace(".", "")),
                         "text": reply["text"],
                         "time": datetime.datetime.fromtimestamp(float(reply["ts"])),
                         "user": reply["user"],
-                        "userId": reply["user"],  # Assume user ID is like 'U12345'
+                        # Assume user ID is like 'U12345'
+                        "userId": reply["user"],
                     }
                     raw_messages.append(reply_raw_message)
 
                     # Update the conversation's end time with the reply's timestamp
-                    end_time = datetime.datetime.fromtimestamp(float(reply["ts"]))
+                    end_time = datetime.datetime.fromtimestamp(
+                        float(reply["ts"]))
 
             # Transform the thread into a processed conversation dictionary
             processed_conversation = {
-                "id": int(message["ts"].replace(".", "")),  # Use the timestamp as a unique ID
+                # Use the timestamp as a unique ID
+                "id": int(message["ts"].replace(".", "")),
                 "summary": "",  # You need to implement how to generate a summary
                 "startTime": datetime.datetime.fromtimestamp(float(message["ts"])),
                 "endTime": end_time,
                 "rawMsgs": raw_messages,
                 "users": list(set([raw_message["user"] for raw_message in raw_messages])),
-                "userIds": list(set([raw_message["userId"] for raw_message in raw_messages])),  # Assume user ID is like 'U12345'
+                # Assume user ID is like 'U12345'
+                "userIds": list(set([raw_message["userId"] for raw_message in raw_messages])),
             }
             processed_conversations.append(processed_conversation)
 
