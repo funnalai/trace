@@ -18,12 +18,12 @@ model User {
   rawMessages            RawMessage[]            @relation("UserRawMessages")
   processedConversations ProcessedConversation[] @relation("UserProcessedConversations")
   tickets                Ticket[]                @relation("UserTickets")
-  projects               Project[]               @relation("UserProjects")
+  projects               String[]
 }
 
 model Ticket {
-  id          Int      @id @unique @default(autoincrement())
-  linearId    String   @unique
+  id          Int       @id @unique @default(autoincrement())
+  linearId    String    @unique
   title       String
   projectStr  String?
   description String?
@@ -50,13 +50,6 @@ model ProcessedConversation {
   rawMsgs   RawMessage[] @relation("ProcessedConversationRawMessages")
   user      User         @relation("UserProcessedConversations", fields: [userId], references: [id])
   userId    Int
-}
-
-model Project {
-  id     Int  @id @unique @default(autoincrement())
-  // Add your project fields here
-  user   User @relation("UserProjects", fields: [userId], references: [id])
-  userId Int
 }
 
 model ProcessedMessage {
