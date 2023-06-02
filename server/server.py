@@ -3,9 +3,14 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from preprocessing import return_relevant_document_context
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+import os
+from dotenv import load_dotenv
 from prisma import Prisma
 from sources.linear import get_linear_data
 from datetime import datetime
+
+load_dotenv()
+
 
 app = FastAPI()
 
@@ -49,6 +54,8 @@ async def root():
     try:
         db = Prisma()
         await db.connect()
+        # post = await db.user.create({})
+
         return {"hello": "world"}
     except Exception as ex:
         print(ex)
