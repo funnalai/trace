@@ -30,6 +30,18 @@ possible_statuses = {
     "Canceled": "b83ca825-10fb-450d-976a-b011bda26f49",
 }
 
+def generate_fetch_users_query(team_id):
+    query = """
+    query TeamUsers {
+      users {
+        nodes {
+          id
+          name
+          }
+      }
+    }
+    """
+    return query
 
 def generate_mutation(title, description, team_id, project_id, status):
     # randomly pick a status from possible_statuses
@@ -75,5 +87,17 @@ def create_issue():
                       response.status_code)
                 print("Error message:", response.text)
 
+def fetch_users():
+    query = generate_fetch_users_query(team_id)
+    response = requests.post(url, headers=headers,
+                             data=json.dumps({"query": query}))
+    if response.status_code == 200:
+        print("Users fetched successfully!")
+        users_data = response.json()
+        print("users data: ", users_data)
+    else:
+        print("Failed to fetch users. Status code:",
+              response.status_code)
+        print("Error message:", response.text)
 
-create_issue()
+fetch_users()
