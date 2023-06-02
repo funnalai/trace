@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from sources.slack import get_slack_data
 from dotenv import load_dotenv
-from prisma import Prisma
 from sources.linear import get_linear_data
+from db_utils import connect_db
 from datetime import datetime
 
 load_dotenv()
@@ -38,19 +38,6 @@ def extract_stream(file: UploadFile = File(...)):
     return io.BytesIO(pdf_as_bytes)
 
 
-async def connect_db():
-    """
-    Connect to the database. Returns None if connection fails.
-    """
-    try:
-        db = Prisma()
-        await db.connect()
-        return db
-    except Exception as ex:
-        print(ex)
-        return None
-
-
 @app.get("/")
 async def root():
     try:
@@ -67,7 +54,6 @@ async def root():
 @app.get("/slack")
 async def slack():
     try:
-        # TODO: get all channel IDs
         data = await get_slack_data("C05ASUSECRZ")
         return data
     except Exception as ex:

@@ -4,6 +4,8 @@ from fastapi import HTTPException, status
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
+from server.db_utils import connect_db
+
 
 def summarize_conversation(conversation):
     """
@@ -18,6 +20,11 @@ async def get_slack_data(channel):
     Fetch data from the slack API based on the query string queryStr
     """
     try:
+        db = await connect_db()
+        if not db:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Database connection failed")
+
         slack_token = os.getenv("SLACK_API_TOKEN")
         if not slack_token:
             raise HTTPException(
@@ -50,16 +57,27 @@ async def get_slack_data(channel):
 
         # Create a list to hold the processed conversations
         processed_conversations = []
+        all_raw_messages = []
 
         # Iterate over each message in the channel's history
         for message in result["messages"]:
             # Create a list to hold the raw messages of this conversation
             raw_messages = []
+            slack_user_id = str(message["ts"].replace(".", ""))
+
+            # check if user with slackId exists in database
+            # TODO
+            user = await db.user.find_first(where={"slackId": slack_user_id, "email": email})
+            if not user:
+                # create user
+                user = await db.user.create({"slackId": slack_user_id, "name": email})
 
             # Transform the message into a raw message dictionary and add it to the list
             raw_message = {
                 # Use the timestamp as a unique ID
-                "id": int(message["ts"].replace(".", "")),
+                "id": user["id"],
+                "email": user["email"],
+                "slackId": slack_user_id,
                 "text": message["text"],
                 "time": datetime.datetime.fromtimestamp(float(message["ts"])),
                 "user": message["user"],
@@ -107,12 +125,15 @@ async def get_slack_data(channel):
                 "userIds": list(set([raw_message["userId"] for raw_message in raw_messages])),
             }
             processed_conversations.append(processed_conversation)
+            # append all raw messages to all_row_messages
+            all_raw_messages.extend(raw_messages)
 
         data = {
-            "data": processed_conversations,
-            "status": 200
+            "processed_conversations": processed_conversations,
+            "raw_messages": all_raw_messages
         }
 
+        # Write the processed conversation to the database
         return data
 
     except Exception as ex:
