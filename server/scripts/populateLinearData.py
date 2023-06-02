@@ -19,7 +19,6 @@ headers = {
     "Authorization": f"Bearer {os.getenv('LINEAR_API_KEY')}"
 }
 
-
 possible_statuses = {
     "Backlog": "1ea9ca9a-0f0b-48f9-9828-c19a627ea9a3",
     "Todo": "db72454c-cab7-4977-b131-8ca491609efb",
@@ -38,6 +37,19 @@ def generate_fetch_users_query(team_id):
           id
           name
           }
+      }
+    }
+    """
+    return query
+
+def generate_fetch_projects_query(team_id):
+    query = """
+    query TeamProjects {
+      projects {
+        nodes {
+          id
+          name
+        }
       }
     }
     """
@@ -87,6 +99,21 @@ def create_issue():
                       response.status_code)
                 print("Error message:", response.text)
 
+def fetch_projects():
+    query = generate_fetch_projects_query(team_id)
+    response = requests.post(url, headers=headers,
+                             data=json.dumps({"query": query}))
+    if response.status_code == 200:
+        print("Projects fetched successfully!")
+        projects_data = response.json()
+        print("projects data: ", projects_data)
+        return projects_data
+    else:
+        print("Failed to fetch projects. Status code:",
+              response.status_code)
+        print("Error message:", response.text)
+        return None
+
 def fetch_users():
     query = generate_fetch_users_query(team_id)
     response = requests.post(url, headers=headers,
@@ -95,9 +122,11 @@ def fetch_users():
         print("Users fetched successfully!")
         users_data = response.json()
         print("users data: ", users_data)
+        return users_data
     else:
         print("Failed to fetch users. Status code:",
               response.status_code)
         print("Error message:", response.text)
+        return None
 
-fetch_users()
+fetch_projects()
