@@ -54,8 +54,6 @@ async def get_slack_data(channel):
         # Create a list to hold the processed conversations
         processed_conversations = []
 
-        print(result['messages'])
-
         # Iterate over each message in the channel's history
         for message in result["messages"]:
             # Create a list to hold the raw messages of this conversation
@@ -101,13 +99,12 @@ async def get_slack_data(channel):
 
             # Summarize the conversation
             summary = summarize_conversation(raw_messages)
-            print(summary)
 
             # Transform the thread into a processed conversation dictionary
             processed_conversation = {
                 # Use the timestamp as a unique ID
                 "id": int(message["ts"].replace(".", "")),
-                "summary": "",  # You need to implement how to generate a summary
+                "summary": summary,  # You need to implement how to generate a summary
                 "startTime": datetime.datetime.fromtimestamp(float(message["ts"])),
                 "endTime": end_time,
                 "rawMsgs": raw_messages,
