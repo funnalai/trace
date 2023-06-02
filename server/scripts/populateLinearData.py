@@ -19,7 +19,6 @@ headers = {
     "Authorization": f"Bearer {os.getenv('LINEAR_API_KEY')}"
 }
 
-
 possible_statuses = {
     "Backlog": "1ea9ca9a-0f0b-48f9-9828-c19a627ea9a3",
     "Todo": "db72454c-cab7-4977-b131-8ca491609efb",
@@ -45,6 +44,20 @@ def generate_fetch_users_query(team_id):
     return query
 
 
+def generate_fetch_projects_query(team_id):
+    query = """
+    query TeamProjects {
+      projects {
+        nodes {
+          id
+          name
+        }
+      }
+    }
+    """
+    return query
+
+
 def generate_mutation(title, description, team_id, project_id, status, user_id):
     # randomly pick a status from possible_statuses
     mutation = f"""
@@ -54,9 +67,9 @@ def generate_mutation(title, description, team_id, project_id, status, user_id):
           title: "{title}"
           description: "{description}"
           teamId: "{team_id}"
-          projectId: "{project_id}"
           stateId: "{possible_statuses[status]}"
           assigneeId: "{user_id}"
+          projectId: "{project_id}"
         }}
       ) {{
         success
@@ -75,15 +88,20 @@ def create_issue():
     with open("./scripts/linearFakeData.json") as f:
         data = json.load(f)
         users = fetch_users()
+        projects = fetch_projects()
         # iterate through the data and create issues
         for issue in data:
             # randomly select an index from users
             random_index = random.randint(0, len(users) - 1)
+            # randomly select an index from projects
+            random_project_index = random.randint(0, len(projects) - 1)
             # randomly select a user from users
             random_user = users[random_index]
 
+            random_project = projects[random_project_index]
+
             mutation = generate_mutation(
-                issue["title"], issue["description"], team_id, project_id, issue["status"], random_user["id"])
+                issue["title"], issue["description"], team_id, random_project["id"], issue["status"], random_user["id"])
             response = requests.post(url, headers=headers,
                                      data=json.dumps({"query": mutation}))
             # Check the response status
@@ -95,6 +113,22 @@ def create_issue():
                 print("Failed to create the issue. Status code:",
                       response.status_code)
                 print("Error message:", response.text)
+
+
+def fetch_projects():
+    query = generate_fetch_projects_query(team_id)
+    response = requests.post(url, headers=headers,
+                             data=json.dumps({"query": query}))
+    if response.status_code == 200:
+        print("Projects fetched successfully!")
+        projects_data = response.json()
+        print("projects data: ", projects_data)
+        return projects_data["data"]["projects"]["nodes"]
+    else:
+        print("Failed to fetch projects. Status code:",
+              response.status_code)
+        print("Error message:", response.text)
+        return {}
 
 
 def fetch_users():
