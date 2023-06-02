@@ -100,7 +100,7 @@ async def get_slack_data(channel):
             }
             processed_conversations.append(processed_conversation)
 
-        data = processed_conversations.json()
+        data = {'processed_conversations':processed_conversations}
         data['status'] = 200
         return data
 
