@@ -34,9 +34,9 @@ def extract_stream(file: UploadFile = File(...)):
 @app.get("/")
 async def root():
     try:
-        db = Prisma()
-        await db.connect()
-        post = await db.user.create({})
+        # db = Prisma()
+        # await db.connect()
+        # post = await db.user.create({})
 
         return {"hello": "world"}
     except Exception as ex:
