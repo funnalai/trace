@@ -33,7 +33,7 @@ async def get_slack_data(channel):
             # Fetch conversations from the specified channel
             result = client.conversations_history(channel=channel)
         except SlackApiError as e:
-            print()
+            print("Error fetching result for channel: ", e)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Error: {e.response['error']}",
@@ -108,8 +108,11 @@ async def get_slack_data(channel):
             }
             processed_conversations.append(processed_conversation)
 
-        data = processed_conversations.json()
-        data['status'] = 200
+        data = {
+            "data": processed_conversations,
+            "status": 200
+        }
+
         return data
 
     except Exception as ex:
