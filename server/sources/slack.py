@@ -1,16 +1,27 @@
 import datetime
 import os
+from dotenv import load_dotenv
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+from langchain.llms import OpenAI
 
+from langchain.chains.summarize import load_summarize_chain
+from langchain.docstore.document import Document
+from langchain.text_splitter import CharacterTextSplitter
 
-def summarize_conversation(conversation):
+load_dotenv()
+
+def summarize_conversation(raw_conv):
     """
     Summarize a conversation based on its raw messages
     """
-    # TODO
-    pass
-
+    # return ""
+    llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
+    summarize_chain = load_summarize_chain(llm, chain_type="map_reduce")
+    message_texts = [msg["text"] for msg in raw_conv]
+    docs = [Document(page_content=text) for text in message_texts]
+    summary = summarize_chain.run(docs)
+    return summary
 
 async def get_slack_data(channel):
     """
@@ -42,6 +53,8 @@ async def get_slack_data(channel):
 
         # Create a list to hold the processed conversations
         processed_conversations = []
+
+        print(result['messages'])
 
         # Iterate over each message in the channel's history
         for message in result["messages"]:
@@ -86,6 +99,10 @@ async def get_slack_data(channel):
                     end_time = datetime.datetime.fromtimestamp(
                         float(reply["ts"]))
 
+            # Summarize the conversation
+            summary = summarize_conversation(raw_messages)
+            print(summary)
+
             # Transform the thread into a processed conversation dictionary
             processed_conversation = {
                 # Use the timestamp as a unique ID
@@ -100,10 +117,13 @@ async def get_slack_data(channel):
             }
             processed_conversations.append(processed_conversation)
 
-        data = processed_conversations.json()
+        data = {
+            'data': processed_conversations
+        }
         data['status'] = 200
         return data
 
     except Exception as ex:
+        # print line number
         print(ex)
-        return {"status": 400, "error": "Linear API call failed"}
+        return {"status": 400, "error": "Slack API call failed"}

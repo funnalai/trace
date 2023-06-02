@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 from prisma import Prisma
 from sources.linear import get_linear_data
+from sources.slack import get_slack_data
 from datetime import datetime
 
 load_dotenv()
@@ -165,3 +166,6 @@ async def linear():
     return {"status": 200, "success": True, "message": "Issues added to database"}
 
 
+@app.get("/slack")
+async def slack():
+    return await get_slack_data("C05ASUSECRZ")
