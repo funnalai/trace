@@ -30,6 +30,7 @@ possible_statuses = {
     "Canceled": "b83ca825-10fb-450d-976a-b011bda26f49",
 }
 
+
 def generate_fetch_users_query(team_id):
     query = """
     query TeamUsers {
@@ -43,7 +44,8 @@ def generate_fetch_users_query(team_id):
     """
     return query
 
-def generate_mutation(title, description, team_id, project_id, status):
+
+def generate_mutation(title, description, team_id, project_id, status, user_id):
     # randomly pick a status from possible_statuses
     mutation = f"""
     mutation IssueCreate {{
@@ -54,6 +56,7 @@ def generate_mutation(title, description, team_id, project_id, status):
           teamId: "{team_id}"
           projectId: "{project_id}"
           stateId: "{possible_statuses[status]}"
+          assigneeId: "{user_id}"
         }}
       ) {{
         success
@@ -71,10 +74,16 @@ def create_issue():
     # read linearFakeData.json, pass in the relative path
     with open("./scripts/linearFakeData.json") as f:
         data = json.load(f)
+        users = fetch_users()
         # iterate through the data and create issues
         for issue in data:
+            # randomly select an index from users
+            random_index = random.randint(0, len(users) - 1)
+            # randomly select a user from users
+            random_user = users[random_index]
+
             mutation = generate_mutation(
-                issue["title"], issue["description"], team_id, project_id, issue["status"])
+                issue["title"], issue["description"], team_id, project_id, issue["status"], random_user["id"])
             response = requests.post(url, headers=headers,
                                      data=json.dumps({"query": mutation}))
             # Check the response status
@@ -87,6 +96,7 @@ def create_issue():
                       response.status_code)
                 print("Error message:", response.text)
 
+
 def fetch_users():
     query = generate_fetch_users_query(team_id)
     response = requests.post(url, headers=headers,
@@ -95,9 +105,12 @@ def fetch_users():
         print("Users fetched successfully!")
         users_data = response.json()
         print("users data: ", users_data)
+        return users_data["data"]["users"]["nodes"]
     else:
         print("Failed to fetch users. Status code:",
               response.status_code)
         print("Error message:", response.text)
+        return {}
 
-fetch_users()
+
+create_issue()
