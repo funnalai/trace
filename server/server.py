@@ -155,10 +155,9 @@ async def linear():
                 # Write the project to the user project strings list if the project exists
                 if projectStr is not None:
                     projects = user.projects
-                    print(projects)
                     if projectStr not in projects:
                         projects.append(projectStr)
-                        await db.user.update(where={"id": user.id}, data={"projectStrings": {"set": projects}})
+                        await db.user.update(where={"id": user.id}, data={"projects": {"set": projects}})
         except Exception as ex:
             print(ex)
             return {"status": 400, "error": f"Issue creation failed {issue['id']}"}
