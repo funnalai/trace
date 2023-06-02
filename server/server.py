@@ -78,7 +78,7 @@ async def linear():
                 try:
                     user = await db.user.find_first(where={"linearId": assignee['id']})
                     if not user:
-                        user = await db.user.create({"linearId": assignee['id'], "name": assignee['name']})
+                        user = await db.user.create({"linearId": assignee['id'], "name": assignee['name'], 'email': assignee['email']})
                 except Exception as ex:
                     print(ex)
                     return {"status": 400, "error": f"User creation failed {assignee['id']}"}

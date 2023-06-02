@@ -13,6 +13,7 @@ datasource db {
 model User {
   id                     Int                     @id @unique @default(autoincrement())
   name                   String
+  email                  String                  @unique
   linearId               String?                 @unique
   slackId                String?                 @unique
   rawMessages            RawMessage[]            @relation("UserRawMessages")
