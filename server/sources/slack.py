@@ -32,6 +32,33 @@ def summarize_conversation(raw_conv):
     summary = summarize_chain.run(docs)
     return summary
 
+async def get_slack_email(user_id):
+    """
+    Fetch data from the linear API based on the query string queryStr
+    """
+    try:
+        slack_token = os.getenv("SLACK_API_TOKEN")
+        if not slack_token:
+            return {"status": 400, "error": "No slack API token found"}
+
+        # Create a client instance
+        client = WebClient(token=slack_token)
+
+        # Specify the channel to fetch conversations from
+
+        try:
+            # Fetch conversations from the specified channel
+            result = client.users_info(user=user_id)
+        except SlackApiError as e:
+            print(f"Error: {e.response['error']}")
+            exit(1)
+
+        return result['user']['profile']['email']
+
+    except Exception as ex:
+        print(ex)
+        return None
+
 async def get_slack_data(channel):
     """
     Fetch data from the linear API based on the query string queryStr
