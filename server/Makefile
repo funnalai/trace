@@ -1,3 +1,6 @@
+run:
+	scripts/run.sh
+	
 server:
 	uvicorn server:app --reload
 
