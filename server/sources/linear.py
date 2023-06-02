@@ -24,10 +24,13 @@ queryStr = """
 """
 
 def get_linear_data():
+    """
+    Fetch data from the linear API based on the query string queryStr
+    """
     try:
         linear_key = os.getenv("LINEAR_API_KEY")
         if not linear_key:
-            return {"error": "No Linear API key found"}
+            return {"status": 400, "error": "No Linear API key found"}
 
         headers = {
             "Content-Type": "application/json",
@@ -36,7 +39,10 @@ def get_linear_data():
         query = { "query": queryStr }
         response = requests.post("https://api.linear.app/graphql", headers=headers, json=query)
 
-        return response.json()
+        data = response.json()
+        data['status'] = 200
+        return data
 
     except Exception as ex:
-        return {"error": json.dumps(ex)}
+        print(ex)
+        return {"status": 400, "error": "Linear API call failed"}
