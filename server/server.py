@@ -76,8 +76,11 @@ async def linear():
             if 'assignee' in issue and issue['assignee']:
                 assignee = issue['assignee']
                 try:
-                    user = await db.user.find_first(where={"linearId": assignee['id']})
-                    if not user:
+                    # We haven't seen this linear user before
+                    userByLinearId = await db.user.find_first(where={"linearId": assignee['id']})
+                    # We haven't seen this slack user (same email) before
+                    userByEmail = await db.user.find_first(where={"email": assignee['email']})
+                    if not userByLinearId and not userByEmail:
                         user = await db.user.create({"linearId": assignee['id'], "name": assignee['name'], 'email': assignee['email']})
                 except Exception as ex:
                     print(ex)
