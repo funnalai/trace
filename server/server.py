@@ -3,7 +3,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from preprocessing import return_relevant_document_context
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-import os
+from sources.slack import get_slack_data
 from dotenv import load_dotenv
 from prisma import Prisma
 from sources.linear import get_linear_data
@@ -37,6 +37,7 @@ def extract_stream(file: UploadFile = File(...)):
     # We convert the bytes into a Streamable object of bytes
     return io.BytesIO(pdf_as_bytes)
 
+
 async def connect_db():
     """
     Connect to the database. Returns None if connection fails.
@@ -49,6 +50,7 @@ async def connect_db():
         print(ex)
         return None
 
+
 @app.get("/")
 async def root():
     try:
@@ -60,6 +62,17 @@ async def root():
     except Exception as ex:
         print(ex)
         return {"error": "yes"}
+
+
+@app.get("/slack")
+async def slack():
+    try:
+        # TODO: get all channel IDs
+        data = await get_slack_data("C05ASUSECRZ")
+        return data
+    except Exception as ex:
+        print(ex)
+        raise HTTPException(status_code=400, detail="Slack API call failed")
 
 
 @app.get("/linear")
@@ -137,14 +150,16 @@ async def linear():
             projectStr = await get_project_from_issue(db, issue)
 
             query = {
-                    "linearId": issue['id'],
-                    "title": issue['title'],
-                    "description": issue['description'],
-                    "createdAt": datetime.strptime(issue['createdAt'], "%Y-%m-%dT%H:%M:%S.%fZ"),
-                    "projectStr": projectStr
-                }
-            if projectStr is not None: query['projectStr'] = projectStr
-            if user is not None: query['userId'] = user.id
+                "linearId": issue['id'],
+                "title": issue['title'],
+                "description": issue['description'],
+                "createdAt": datetime.strptime(issue['createdAt'], "%Y-%m-%dT%H:%M:%S.%fZ"),
+                "projectStr": projectStr
+            }
+            if projectStr is not None:
+                query['projectStr'] = projectStr
+            if user is not None:
+                query['userId'] = user.id
 
             # Create the issue
             ticket = await db.ticket.create(query)
@@ -163,5 +178,3 @@ async def linear():
             return {"status": 400, "error": f"Issue creation failed {issue['id']}"}
 
     return {"status": 200, "success": True, "message": "Issues added to database"}
-
-

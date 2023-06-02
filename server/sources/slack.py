@@ -1,5 +1,6 @@
 import datetime
 import os
+from fastapi import HTTPException, status
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
@@ -14,31 +15,38 @@ def summarize_conversation(conversation):
 
 async def get_slack_data(channel):
     """
-    Fetch data from the linear API based on the query string queryStr
+    Fetch data from the slack API based on the query string queryStr
     """
     try:
         slack_token = os.getenv("SLACK_API_TOKEN")
         if not slack_token:
-            return {"status": 400, "error": "No slack API token found"}
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No slack API token found",
+            )
 
         # Create a client instance
         client = WebClient(token=slack_token)
 
         # Specify the channel to fetch conversations from
+        try:
+            # Fetch conversations from the specified channel
+            result = client.conversations_history(channel=channel)
+        except SlackApiError as e:
+            print()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Error: {e.response['error']}",
+            )
 
         try:
             # Fetch conversations from the specified channel
             result = client.conversations_history(channel=channel)
         except SlackApiError as e:
-            print(f"Error: {e.response['error']}")
-            exit(1)
-
-        try:
-            # Fetch conversations from the specified channel
-            result = client.conversations_history(channel=channel)
-        except SlackApiError as e:
-            print(f"Error: {e.response['error']}")
-            exit(1)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Error: {e.response['error']}",
+            )
 
         # Create a list to hold the processed conversations
         processed_conversations = []
@@ -106,4 +114,4 @@ async def get_slack_data(channel):
 
     except Exception as ex:
         print(ex)
-        return {"status": 400, "error": "Linear API call failed"}
+        raise ex
