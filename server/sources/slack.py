@@ -22,7 +22,7 @@ def summarize_conversation(raw_conv):
     docs = [Document(page_content=text) for text in message_texts]
 
     prompt = """
-    Write a concise summary of the following, assigning actions and
+    Write a concise summary of the following. Highlight clearly what was said, and by whom.
     "{text}"
     CONCISE SUMMARY:
     """
