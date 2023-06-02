@@ -3,6 +3,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from preprocessing import return_relevant_document_context
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from prisma import Prisma
 
 app = FastAPI()
 
@@ -31,5 +32,13 @@ def extract_stream(file: UploadFile = File(...)):
 
 
 @app.get("/")
-def root():
-    return {"hello": "world"}
+async def root():
+    try:
+        db = Prisma()
+        await db.connect()
+        post = await db.user.create({})
+
+        return {"hello": "world"}
+    except Exception as ex:
+        print(ex)
+        return {"error": "yes"}
