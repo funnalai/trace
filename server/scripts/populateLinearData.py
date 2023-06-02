@@ -2,6 +2,7 @@ import requests
 import json
 from dotenv import load_dotenv
 import os
+import random
 
 load_dotenv()
 
@@ -18,21 +19,20 @@ headers = {
     "Authorization": f"Bearer {os.getenv('LINEAR_API_KEY')}"
 }
 
-# Create the issue payload
-payload = {
-    "title": "New Issue",
-    "description": "This is a new issue created via the Linear API",
-    "team_id": team_id,
-    "project_id": project_id,
-    "labels": ["bug"],
-    "priority": 2
+
+possible_statuses = {
+    "Backlog": "1ea9ca9a-0f0b-48f9-9828-c19a627ea9a3",
+    "Todo": "db72454c-cab7-4977-b131-8ca491609efb",
+    "In Progress": "214c932a-37bd-4ad8-9511-3b88684a3240",
+    "Duplicated": "f05fc843-eb3d-49b3-9f59-1ea8facd3a12",
+    "Canceled": "b83ca825-10fb-450d-976a-b011bda26f49",
+    "Completed": "52d29efd-134a-47dd-8ef1-00c813fea8b8",
+    "Canceled": "b83ca825-10fb-450d-976a-b011bda26f49",
 }
 
-# Convert the payload to JSON
-json_payload = json.dumps(payload)
 
-
-def generate_mutation(title, description, team_id, project_id):
+def generate_mutation(title, description, team_id, project_id, status):
+    # randomly pick a status from possible_statuses
     mutation = f"""
     mutation IssueCreate {{
       issueCreate(
@@ -41,6 +41,7 @@ def generate_mutation(title, description, team_id, project_id):
           description: "{description}"
           teamId: "{team_id}"
           projectId: "{project_id}"
+          stateId: "{possible_statuses[status]}"
         }}
       ) {{
         success
@@ -53,22 +54,26 @@ def generate_mutation(title, description, team_id, project_id):
     """
     return mutation
 
-# Send the POST request
-
 
 def create_issue():
-    mutation = generate_mutation(
-        payload["title"], payload["description"], payload["team_id"], payload["project_id"])
-    response = requests.post(url, headers=headers,
-                             data=json.dumps({"query": mutation}))
-    # Check the response status
-    if response.status_code == 200:
-        print("Issue created successfully!")
-        issue_data = response.json()
-        print("issue data: ", issue_data)
-    else:
-        print("Failed to create the issue. Status code:", response.status_code)
-        print("Error message:", response.text)
+    # read linearFakeData.json, pass in the relative path
+    with open("./scripts/linearFakeData.json") as f:
+        data = json.load(f)
+        # iterate through the data and create issues
+        for issue in data:
+            mutation = generate_mutation(
+                issue["title"], issue["description"], team_id, project_id, issue["status"])
+            response = requests.post(url, headers=headers,
+                                     data=json.dumps({"query": mutation}))
+            # Check the response status
+            if response.status_code == 200:
+                print("Issue created successfully!")
+                issue_data = response.json()
+                print("issue data: ", issue_data)
+            else:
+                print("Failed to create the issue. Status code:",
+                      response.status_code)
+                print("Error message:", response.text)
 
 
 create_issue()

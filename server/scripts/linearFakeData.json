@@ -1,0 +1,137 @@
+[
+    {
+        "title": "User Registration",
+        "description": "Implement user registration functionality to allow users to create new accounts.",
+        "status": "In Progress"
+    },
+    {
+        "title": "User Login",
+        "description": "Develop user login functionality for registered users to access their accounts.",
+        "status": "In Progress"
+    },
+    {
+        "title": "Create Project",
+        "description": "Implement the ability for users to create new projects within the project management tool.",
+        "status": "Duplicated"
+    },
+    {
+        "title": "Project Dashboard",
+        "description": "Design and develop a project dashboard to provide an overview of project details, progress, and key metrics.",
+        "status": "Canceled"
+    },
+    {
+        "title": "Task Management",
+        "description": "Implement task management features, including creating, assigning, and tracking tasks within projects.",
+        "status": "Completed"
+    },
+    {
+        "title": "File Management",
+        "description": "Develop file management capabilities to allow users to upload, store, and share project-related files.",
+        "status": "Canceled"
+    },
+    {
+        "title": "Collaboration Tools",
+        "description": "Integrate collaboration features such as real-time chat, comments, and notifications for seamless team communication.",
+        "status": "In Progress"
+    },
+    {
+        "title": "Project Timeline",
+        "description": "Create a visual project timeline to display milestones, deadlines, and task dependencies.",
+        "status": "Duplicated"
+    },
+    {
+        "title": "Resource Allocation",
+        "description": "Implement resource management features to allocate and track team members' availability and workload.",
+        "status": "Backlog"
+    },
+    {
+        "title": "Reporting and Analytics",
+        "description": "Design and develop reporting and analytics capabilities to provide insights into project performance and productivity.",
+        "status": "Completed"
+    },
+    {
+        "title": "Integration with Third-Party Tools",
+        "description": "Integrate the project management tool with popular third-party tools such as calendars, version control systems, or communication platforms.",
+        "status": "Canceled"
+    },
+    {
+        "title": "User Roles and Permissions",
+        "description": "Implement role-based access control to define different user roles and their permissions within projects.",
+        "status": "In Progress"
+    },
+    {
+        "title": "Mobile App Development",
+        "description": "Develop a mobile application for seamless access to the project management tool on mobile devices.",
+        "status": "Completed"
+    },
+    {
+        "title": "Data Security and Privacy",
+        "description": "Ensure data security and privacy measures are in place to protect sensitive project information.",
+        "status": "Backlog"
+    },
+    {
+        "title": "Notifications and Reminders",
+        "description": "Implement email or in-app notifications and reminders for upcoming deadlines, task assignments, and project updates.",
+        "status": "In Progress"
+    },
+    {
+        "title": "Customization and Branding",
+        "description": "Allow users to customize the project management tool's interface and branding to align with their company's identity.",
+        "status": "Duplicated"
+    },
+    {
+        "title": "API Development",
+        "description": "Design and develop a robust API to enable integration with other systems and facilitate data exchange.",
+        "status": "Canceled"
+    },
+    {
+        "title": "Design Team Onboarding",
+        "description": "Create an onboarding process for new design team members.",
+        "status": "Todo"
+    },
+    {
+        "title": "Marketing Campaign Planning",
+        "description": "Collaborate with the marketing team to plan upcoming campaigns.",
+        "status": "In Progress"
+    },
+    {
+        "title": "UI/UX Improvements",
+        "description": "Conduct a review of the user interface and implement necessary improvements.",
+        "status": "Todo"
+    },
+    {
+        "title": "Brand Identity Development",
+        "description": "Develop the brand identity guidelines for the company.",
+        "status": "Duplicated"
+    },
+    {
+        "title": "Content Creation",
+        "description": "Create engaging content for marketing materials and social media channels.",
+        "status": "In Progress"
+    },
+    {
+        "title": "Visual Design for Website",
+        "description": "Design and implement visually appealing layouts and graphics for the company website.",
+        "status": "Completed"
+    },
+    {
+        "title": "Market Research",
+        "description": "Conduct market research to identify target audience and competitors.",
+        "status": "Todo"
+    },
+    {
+        "title": "Social Media Strategy",
+        "description": "Develop a comprehensive social media strategy to increase brand visibility.",
+        "status": "In Progress"
+    },
+    {
+        "title": "Graphic Design for Advertisements",
+        "description": "Create captivating graphics for advertising campaigns across various platforms.",
+        "status": "Duplicated"
+    },
+    {
+        "title": "Email Marketing Campaign",
+        "description": "Plan and execute an email marketing campaign to engage with customers.",
+        "status": "Completed"
+    }
+]
