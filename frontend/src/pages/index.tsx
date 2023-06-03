@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import { getEmployees } from "../utils/api";
 import { useQuery } from "@tanstack/react-query";
 import styled from "styled-components";
-import { EmployeeCard } from "../components/Employee";
+import { EmployeeCard } from "../components/EmployeeCard";
 
 const inter = Inter({ subsets: ["latin"] });
 

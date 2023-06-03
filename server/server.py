@@ -53,6 +53,17 @@ async def root():
         return {"error": "yes"}
 
 
+@app.get("/user")
+async def get_user(id: str):
+    try:
+        db = await connect_db()
+        user = await db.user.find_first(where={"id": int(id)})
+        return user
+    except Exception as ex:
+        print(ex)
+        raise HTTPException(status_code=400, detail="Error getting user")
+
+
 @app.get("/users")
 async def get_users():
     try:

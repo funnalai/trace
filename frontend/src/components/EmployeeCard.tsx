@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -11,8 +12,10 @@ const Container = styled.div`
 
 export const EmployeeCard = ({ employee }: { employee: User }) => {
     return (
-        <Container>
-            <p>{employee.name}</p>
-        </Container>
+        <Link href={`/user/${encodeURIComponent(employee.id)}`}>
+            <Container>
+                <p>{employee.name}</p>
+            </Container>
+        </Link>
     );
 };
