@@ -11,7 +11,7 @@ const Container = styled.main``;
 
 export default function Home() {
     const { data: employees, isLoading } = useQuery<User[]>({ queryKey: ["employees"], queryFn: getEmployees });
-    console.log(employees);
+    // console.log(employees);
     return (
         <Container className={`flex min-h-screen flex-col items-center justify-center p-24 ${inter.className}`}>
             <h2 className="text-xl">

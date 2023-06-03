@@ -57,6 +57,13 @@ async def root():
         print(ex)
         return {"error": "yes"}
 
+async def get_name_for_id(id):
+    db = await connect_db()
+    user = await db.user.find_first(where={"id": int(id)})
+    if user is None:
+        return None
+    return user.name
+
 @app.get("/chat")
 async def chat(id: str, input: str):
     try:
@@ -73,7 +80,23 @@ async def chat(id: str, input: str):
         max_similarity_index = similarities.index(max_similarity)
         # Get the conversation
         conversation = conversations[max_similarity_index]
-        return {"conversation": conversation}
+        # For every id in the conversation summary, replace with name using get_name_for_id
+        conversation_summary = conversation.summary
+        # currently names are the ids, as 1, 2 and so on. We need to replace these with the actual names
+        import re
+        # regex for every number
+        conversation_regex = re.compile(r'(\d+)')
+        # for every regex
+        for match in conversation_regex.finditer(conversation_summary):
+            # get the id
+            id = match.group(1)
+            print(id)
+            # get the name
+            name = await get_name_for_id(id)
+            # replace the id with the name
+            if name is not None:
+                conversation_summary = conversation_summary.replace(f'{id}', f'{name}')
+        return {"conversation": conversation, "summary": conversation_summary}
 
     except Exception as ex:
         print(ex)
