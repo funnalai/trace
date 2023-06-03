@@ -23,7 +23,8 @@ def summarize_conversation(raw_conv):
     """
     # return ""
     llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
-    message_texts = [msg['user'] + ": " + msg["text"] for msg in raw_conv]
+    message_texts = [str(msg['userId']) + ": " + msg["text"]
+                     for msg in raw_conv]
     docs = [Document(page_content=text) for text in message_texts]
 
     prompt = """
@@ -175,7 +176,8 @@ async def get_slack_data():
                         slack_reply_user_id = str(reply["user"])
                         reply_message_id = str(reply["ts"].replace(
                             ".", "")) + slack_reply_user_id
-                        inner_user = await find_or_create_user(reply, db, reply_message_id)
+                        print(reply, slack_reply_user_id)
+                        inner_user = await find_or_create_user(reply, db, slack_reply_user_id)
                         users_in_conversation.add(inner_user.id)
 
                         # Transform each reply into a raw message dictionary and add it to the list
@@ -189,6 +191,7 @@ async def get_slack_data():
                         }
 
                         await db.rawmessage.create(reply_raw_message)
+                        print("created reply message")
 
                         raw_messages.append(reply_raw_message)
 
@@ -196,7 +199,9 @@ async def get_slack_data():
                         end_time = datetime.fromtimestamp(
                             float(reply["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
+                print("before summary")
                 # Summarize the conversation
+                print("raw messages: ", raw_messages)
                 summary = summarize_conversation(raw_messages)
                 print(summary)
 
@@ -211,6 +216,7 @@ async def get_slack_data():
                     "users": {"connect": list(map(lambda user: {"id": user}, users_in_conversation))},
                 }
                 await db.processedconversation.create(processed_conversation)
+                print("Created processed conversation")
                 processed_conversations.append(processed_conversation)
                 # append all raw messages to all_row_messages
                 all_raw_messages.extend(raw_messages)
