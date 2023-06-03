@@ -13,6 +13,8 @@ from langchain import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain.docstore.document import Document
 
+from utils.embeddings import get_embeddings
+
 
 load_dotenv()
 
@@ -23,7 +25,8 @@ def summarize_conversation(raw_conv):
     """
     # return ""
     llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
-    message_texts = [msg['user'] + ": " + msg["text"] for msg in raw_conv]
+    message_texts = [str(msg['userId']) + ": " + msg["text"]
+                     for msg in raw_conv]
     docs = [Document(page_content=text) for text in message_texts]
 
     prompt = """
@@ -135,6 +138,7 @@ async def get_slack_data():
 
             # Iterate over each message in the channel's history
             for message in result["messages"]:
+                print("entered messages")
                 # Create a list to hold the raw messages of this conversation
                 raw_messages = []
                 users_in_conversation = set()
@@ -143,6 +147,7 @@ async def get_slack_data():
                 message_id = str(message["ts"].replace(
                     ".", "")) + slack_user_id
                 slack_profile = await get_slack_profile(user_id=slack_user_id, client=client)
+                print("retrieved slack profile")
 
                 # check if user with slackId or email exists in database
                 user = await find_or_create_user(slack_profile, db, slack_user_id)
@@ -175,7 +180,8 @@ async def get_slack_data():
                         slack_reply_user_id = str(reply["user"])
                         reply_message_id = str(reply["ts"].replace(
                             ".", "")) + slack_reply_user_id
-                        inner_user = await find_or_create_user(reply, db, reply_message_id)
+                        slack_reply_profile = await get_slack_profile(user_id=slack_reply_user_id, client=client)
+                        inner_user = await find_or_create_user(slack_reply_profile, db, slack_reply_user_id)
                         users_in_conversation.add(inner_user.id)
 
                         # Transform each reply into a raw message dictionary and add it to the list
@@ -197,12 +203,16 @@ async def get_slack_data():
                             float(reply["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
                 # Summarize the conversation
+                print("raw messages: ", raw_messages)
                 summary = summarize_conversation(raw_messages)
+                print(summary)
+                embed = str(get_embeddings(summary))
 
                 # Transform the thread into a processed conversation dictionary
                 processed_conversation = {
                     # Use the timestamp as a unique ID
                     "summary": summary,  # You need to implement how to generate a summary
+                    "embedding": embed,
                     "startTime": datetime.fromtimestamp(float(message["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                     "endTime": end_time,
                     "rawMsgs": {"connect": list(map(lambda msg: {"id": msg["id"]}, raw_messages))},
@@ -210,6 +220,7 @@ async def get_slack_data():
                     "users": {"connect": list(map(lambda user: {"id": user}, users_in_conversation))},
                 }
                 await db.processedconversation.create(processed_conversation)
+                print("Created processed conversation")
                 processed_conversations.append(processed_conversation)
                 # append all raw messages to all_row_messages
                 all_raw_messages.extend(raw_messages)
@@ -224,5 +235,5 @@ async def get_slack_data():
 
     except Exception as ex:
         # print line number
-        print(ex)
+        print("Exception getting data from slack: ", ex)
         raise ex

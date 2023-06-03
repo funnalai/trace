@@ -49,6 +49,7 @@ model RawMessage {
 model ProcessedConversation {
   id               Int                 @id @default(autoincrement()) @unique
   summary          String
+  embedding        String
   startTime        DateTime
   endTime          DateTime
   rawMsgs          RawMessage[]        @relation("ProcessedConversationRawMessages")
