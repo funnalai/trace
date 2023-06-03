@@ -151,8 +151,6 @@ async def get_slack_data():
                 user = await find_or_create_user(slack_profile, db, slack_user_id)
                 users_in_conversation.add(user.id)
 
-                print("got user id")
-
                 # Transform the message into a raw message dictionary and add it to the list
                 raw_message = {
                     # Use the timestamp as a unique ID
@@ -163,7 +161,6 @@ async def get_slack_data():
                 }
 
                 await db.rawmessage.create(raw_message)
-                print("created raw message")
 
                 raw_messages.append(raw_message)
 
@@ -196,7 +193,6 @@ async def get_slack_data():
                         }
 
                         await db.rawmessage.create(reply_raw_message)
-                        print("created reply message")
 
                         raw_messages.append(reply_raw_message)
 
@@ -204,7 +200,6 @@ async def get_slack_data():
                         end_time = datetime.fromtimestamp(
                             float(reply["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
-                print("before summary")
                 # Summarize the conversation
                 print("raw messages: ", raw_messages)
                 summary = summarize_conversation(raw_messages)
