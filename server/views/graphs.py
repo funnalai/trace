@@ -4,24 +4,7 @@ from sklearn.cluster import DBSCAN
 from sklearn.manifold import TSNE
 from ..utils.classifier import get_natural_convs_title
 import numpy as np
-# Example conversation data
-dummy_conversations = [
-    {
-        "startTime": "2023-05-30T10:00:00",
-        "endTime": "2023-05-30T11:30:00",
-        "summary": "Conversation 1"
-    },
-    {
-        "startTime": "2023-05-30T12:00:00",
-        "endTime": "2023-05-30T13:00:00",
-        "summary": "Conversation 2"
-    },
-    {
-        "startTime": "2023-05-30T14:00:00",
-        "endTime": "2023-05-30T15:30:00",
-        "summary": "Conversation 3"
-    }
-]
+
 
 def vis_convos(data):
     # Load the data from the JSON object
@@ -44,26 +27,28 @@ def vis_convos(data):
     for label in unique_labels:
         # Get the indices of the points that belong to the current cluster.
         indices = [i for i, x in enumerate(labels) if x == label]
-        
+
         # Get the summaries corresponding to these indices.
         cluster_summaries = [summaries[i] for i in indices]
-        
+
         # Now, you have a list of all summaries associated with the current cluster.
         # Feed this list to your title-creating tool.
-        
+
         # This is an example. Replace the following line with your actual tool.
         title = get_natural_convs_title(cluster_summaries)
-        
+
         titles.append(title)
 
     # Create a scatter plot
-    scatter = plt.scatter([v[0] for v in vectors_2d], [v[1] for v in vectors_2d], c=labels, cmap='viridis')
+    scatter = plt.scatter([v[0] for v in vectors_2d], [v[1]
+                          for v in vectors_2d], c=labels, cmap='viridis')
 
     # Hide the axis
     plt.axis('off')
 
     # Get the centroid of each cluster and annotate
-    centroids = [np.mean([vectors_2d[i] for i in range(len(vectors_2d)) if labels[i] == label], axis=0) for label in unique_labels]
+    centroids = [np.mean([vectors_2d[i] for i in range(
+        len(vectors_2d)) if labels[i] == label], axis=0) for label in unique_labels]
 
     for centroid, title in zip(centroids, titles):
         plt.annotate(title, centroid)
