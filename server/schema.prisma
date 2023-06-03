@@ -12,7 +12,7 @@ datasource db {
 
 model User {
   id                     Int                     @id @unique @default(autoincrement())
-  email String
+  email String @unique
   name                   String
   linearId               String?                 @unique
   slackId                String?                 @unique

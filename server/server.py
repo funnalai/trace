@@ -5,8 +5,9 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from sources.slack import get_slack_data
 from dotenv import load_dotenv
+from prisma import Prisma
 from sources.linear import get_linear_data
-from db_utils import connect_db
+from sources.db_utils import connect_db
 from datetime import datetime
 
 load_dotenv()

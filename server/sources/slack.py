@@ -1,18 +1,64 @@
 import datetime
 import os
 from fastapi import HTTPException, status
+from sources.db_utils import connect_db
+from dotenv import load_dotenv
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from server.db_utils import connect_db
+from langchain.llms import OpenAI
+from langchain import PromptTemplate
+from langchain.chains.summarize import load_summarize_chain
+from langchain.docstore.document import Document
 
 
-def summarize_conversation(conversation):
+load_dotenv()
+
+
+def summarize_conversation(raw_conv):
     """
     Summarize a conversation based on its raw messages
     """
-    # TODO
-    pass
+    # return ""
+    llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
+    message_texts = [msg['user'] + ": " + msg["text"] for msg in raw_conv]
+    docs = [Document(page_content=text) for text in message_texts]
+
+    prompt = """
+    Write a concise summary of the following. Highlight clearly what was said, and by whom.
+    "{text}"
+    CONCISE SUMMARY:
+    """
+    prompt_template = PromptTemplate(template=prompt, input_variables=["text"])
+
+    summarize_chain = load_summarize_chain(
+        llm, chain_type="stuff", prompt=prompt_template)
+    summary = summarize_chain.run(docs)
+    return summary
+
+
+async def get_slack_profile(user_id, client):
+    """
+    Fetch data from the linear API based on the query string queryStr
+    """
+    try:
+        slack_token = os.getenv("SLACK_API_TOKEN")
+        if not slack_token:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="No slack API token found")
+
+        try:
+            # Fetch conversations from the specified channel
+            result = client.users_info(user=user_id)
+        except SlackApiError as e:
+            print(f"Error: {e.response['error']}")
+            exit(1)
+
+        return result['user']['profile']
+
+    except Exception as ex:
+        print(ex)
+        raise ex
 
 
 async def get_slack_data(channel):
@@ -63,15 +109,22 @@ async def get_slack_data(channel):
         for message in result["messages"]:
             # Create a list to hold the raw messages of this conversation
             raw_messages = []
-            slack_user_id = str(message["ts"].replace(".", ""))
 
-            # check if user with slackId exists in database
-            # TODO
-            user = await db.user.find_first(where={"slackId": slack_user_id, "email": email})
+            slack_user_id = str(message["user"].replace(".", ""))
+            slack_profile = await get_slack_profile(user_id=slack_user_id, client=client)
+
+            # check if user with slackId or email exists in database
+            user = await db.user.find_first(where={"email": slack_profile["email"]})
+
             if not user:
                 # create user
-                user = await db.user.create({"slackId": slack_user_id, "name": email})
+                user = await db.user.create({"slackId": slack_user_id, "email": slack_profile["email"], "name": slack_profile["real_name"]})
+            elif not user.slackId:
+                # update the record with slackId
+                user = await db.user.update(where={"email": slack_profile["email"]}, data={"slackId": slack_user_id})
 
+            print("user: ", user)
+            break
             # Transform the message into a raw message dictionary and add it to the list
             raw_message = {
                 # Use the timestamp as a unique ID
@@ -112,11 +165,15 @@ async def get_slack_data(channel):
                     end_time = datetime.datetime.fromtimestamp(
                         float(reply["ts"]))
 
+            # Summarize the conversation
+            summary = summarize_conversation(raw_messages)
+            print(summary)
+
             # Transform the thread into a processed conversation dictionary
             processed_conversation = {
                 # Use the timestamp as a unique ID
                 "id": int(message["ts"].replace(".", "")),
-                "summary": "",  # You need to implement how to generate a summary
+                "summary": summary,  # You need to implement how to generate a summary
                 "startTime": datetime.datetime.fromtimestamp(float(message["ts"])),
                 "endTime": end_time,
                 "rawMsgs": raw_messages,
@@ -137,5 +194,6 @@ async def get_slack_data(channel):
         return data
 
     except Exception as ex:
+        # print line number
         print(ex)
         raise ex
