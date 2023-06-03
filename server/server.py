@@ -1,4 +1,5 @@
 import io
+import numpy as np
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from preprocessing import return_relevant_document_context
 from pydantic import BaseModel
@@ -11,6 +12,7 @@ from sources.db_utils import connect_db
 from utils.classifier import get_conv_classification
 from utils.s3 import upload_image_to_s3
 from datetime import datetime
+from utils.embeddings import get_embeddings,str_to_np_embed
 from views.graphs import view_time_conversations, vis_convos
 import os
 import numpy as np
@@ -55,6 +57,51 @@ async def root():
     except Exception as ex:
         print(ex)
         return {"error": "yes"}
+
+async def get_name_for_id(id):
+    db = await connect_db()
+    user = await db.user.find_first(where={"id": int(id)})
+    if user is None:
+        return None
+    return user.name
+
+@app.get("/chat")
+async def chat(id: str, input: str):
+    try:
+        db = await connect_db()
+        user = await db.user.find_first(where={"id": int(id)}, include={"processedConversations": True})
+        conversations = user.processedConversations
+        embedding_strs = [conversation.embedding for conversation in conversations]
+        embeddings = [str_to_np_embed(embedding_str) for embedding_str in embedding_strs]
+
+        input_embed = get_embeddings(input)
+        # Find the most similar conversation
+        similarities = [np.dot(input_embed, embedding) for embedding in embeddings]
+        max_similarity = max(similarities)
+        max_similarity_index = similarities.index(max_similarity)
+        # Get the conversation
+        conversation = conversations[max_similarity_index]
+        # For every id in the conversation summary, replace with name using get_name_for_id
+        conversation_summary = conversation.summary
+        # currently names are the ids, as 1, 2 and so on. We need to replace these with the actual names
+        import re
+        # regex for every number
+        conversation_regex = re.compile(r'(\d+)')
+        # for every regex
+        for match in conversation_regex.finditer(conversation_summary):
+            # get the id
+            id = match.group(1)
+            print(id)
+            # get the name
+            name = await get_name_for_id(id)
+            # replace the id with the name
+            if name is not None:
+                conversation_summary = conversation_summary.replace(f'{id}', f'{name}')
+        return {"conversation": conversation, "summary": conversation_summary}
+
+    except Exception as ex:
+        print(ex)
+        raise HTTPException(status_code=400, detail="Error getting user")
 
 
 def parse_processed_conversation(conv):
