@@ -83,7 +83,7 @@ async def find_or_create_user(slack_profile, db: Prisma, slack_user_id):
     return user
 
 
-async def get_slack_data(channel):
+async def get_slack_data():
     """
     Fetch data from the slack API based on the query string queryStr
     """
@@ -103,113 +103,117 @@ async def get_slack_data(channel):
         # Create a client instance
         client = WebClient(token=slack_token)
 
-        # Specify the channel to fetch conversations from
-        try:
-            # Fetch conversations from the specified channel
-            result = client.conversations_history(channel=channel)
-        except SlackApiError as e:
-            print("Error fetching result for channel: ", e)
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error: {e.response['error']}",
-            )
-
-        try:
-            # Fetch conversations from the specified channel
-            result = client.conversations_history(channel=channel)
-        except SlackApiError as e:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error: {e.response['error']}",
-            )
+        response = client.conversations_list(
+            types='public_channel,private_channel')
+        channels = list(
+            map(lambda channel: channel["id"], response["channels"]))
 
         # Create a list to hold the processed conversations
         processed_conversations = []
         all_raw_messages = []
 
-        # Iterate over each message in the channel's history
-        for message in result["messages"]:
-            # Create a list to hold the raw messages of this conversation
-            raw_messages = []
-            users_in_conversation = set()
+        for channel in channels:
+            # Specify the channel to fetch conversations from
+            try:
+                # Fetch conversations from the specified channel
+                result = client.conversations_history(channel=channel)
+            except SlackApiError as e:
+                print("Error fetching result for channel: ", e)
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Error: {e.response['error']}",
+                )
 
-            slack_user_id = str(message["user"])
-            message_id = str(message["ts"].replace(".", "")) + slack_user_id
-            slack_profile = await get_slack_profile(user_id=slack_user_id, client=client)
+            try:
+                # Fetch conversations from the specified channel
+                result = client.conversations_history(channel=channel)
+            except SlackApiError as e:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Error: {e.response['error']}",
+                )
 
-            # check if user with slackId or email exists in database
-            user = await find_or_create_user(slack_profile, db, slack_user_id)
-            users_in_conversation.add(user.id)
+            # Iterate over each message in the channel's history
+            for message in result["messages"]:
+                # Create a list to hold the raw messages of this conversation
+                raw_messages = []
+                users_in_conversation = set()
 
-            # Transform the message into a raw message dictionary and add it to the list
-            raw_message = {
-                # Use the timestamp as a unique ID
-                "id": message_id,
-                "text": message["text"],
-                "time": datetime.fromtimestamp(float(message["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-                "userId": user.id
-            }
+                slack_user_id = str(message["user"])
+                message_id = str(message["ts"].replace(
+                    ".", "")) + slack_user_id
+                slack_profile = await get_slack_profile(user_id=slack_user_id, client=client)
 
-            await db.rawmessage.create(raw_message)
+                # check if user with slackId or email exists in database
+                user = await find_or_create_user(slack_profile, db, slack_user_id)
+                users_in_conversation.add(user.id)
 
-            raw_messages.append(raw_message)
+                # Transform the message into a raw message dictionary and add it to the list
+                raw_message = {
+                    # Use the timestamp as a unique ID
+                    "id": message_id,
+                    "text": message["text"],
+                    "time": datetime.fromtimestamp(float(message["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                    "userId": user.id
+                }
 
-            # Initialize the conversation's end time with the message's timestamp
-            end_time = datetime.fromtimestamp(float(message["ts"]))
+                await db.rawmessage.create(raw_message)
 
-            # If the message has replies, fetch them and update the conversation's end time
-            if "thread_ts" in message:
-                thread_result = client.conversations_replies(
-                    channel=channel, ts=message["thread_ts"])
-                for reply in thread_result["messages"]:
-                    if reply["ts"] == message["ts"]:
-                        continue  # Skip the message itself
+                raw_messages.append(raw_message)
 
-                    slack_reply_user_id = str(reply["user"])
-                    reply_message_id = str(reply["ts"].replace(
-                        ".", "")) + slack_reply_user_id
-                    inner_user = await find_or_create_user(reply, db, reply_message_id)
-                    users_in_conversation.add(inner_user.id)
+                # Initialize the conversation's end time with the message's timestamp
+                end_time = datetime.fromtimestamp(float(message["ts"]))
 
-                    # Transform each reply into a raw message dictionary and add it to the list
-                    reply_raw_message = {
-                        # Use the timestamp as a unique ID
-                        "id": reply_message_id,
-                        "text": reply["text"],
-                        "time": datetime.fromtimestamp(float(reply["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-                        # Assume user ID is like 'U12345'
-                        "userId": inner_user.id
-                    }
+                # If the message has replies, fetch them and update the conversation's end time
+                if "thread_ts" in message:
+                    thread_result = client.conversations_replies(
+                        channel=channel, ts=message["thread_ts"])
+                    for reply in thread_result["messages"]:
+                        if reply["ts"] == message["ts"]:
+                            continue  # Skip the message itself
 
-                    await db.rawmessage.create(reply_raw_message)
+                        slack_reply_user_id = str(reply["user"])
+                        reply_message_id = str(reply["ts"].replace(
+                            ".", "")) + slack_reply_user_id
+                        inner_user = await find_or_create_user(reply, db, reply_message_id)
+                        users_in_conversation.add(inner_user.id)
 
-                    raw_messages.append(reply_raw_message)
+                        # Transform each reply into a raw message dictionary and add it to the list
+                        reply_raw_message = {
+                            # Use the timestamp as a unique ID
+                            "id": reply_message_id,
+                            "text": reply["text"],
+                            "time": datetime.fromtimestamp(float(reply["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                            # Assume user ID is like 'U12345'
+                            "userId": inner_user.id
+                        }
 
-                    # Update the conversation's end time with the reply's timestamp
-                    end_time = datetime.fromtimestamp(
-                        float(reply["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                        await db.rawmessage.create(reply_raw_message)
 
-            # Summarize the conversation
-            summary = summarize_conversation(raw_messages)
-            print(summary)
+                        raw_messages.append(reply_raw_message)
 
-            # Transform the thread into a processed conversation dictionary
-            processed_conversation = {
-                # Use the timestamp as a unique ID
-                "summary": summary,  # You need to implement how to generate a summary
-                "startTime": datetime.fromtimestamp(float(message["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-                "endTime": end_time,
-                "rawMsgs": {"connect": list(map(lambda msg: {"id": msg["id"]}, raw_messages))},
-                # Assume user ID is like 'U12345'
-                "users": {"connect": list(map(lambda user: {"id": user}, users_in_conversation))},
-            }
-            await db.processedconversation.create(processed_conversation)
-            processed_conversations.append(processed_conversation)
-            # append all raw messages to all_row_messages
-            all_raw_messages.extend(raw_messages)
+                        # Update the conversation's end time with the reply's timestamp
+                        end_time = datetime.fromtimestamp(
+                            float(reply["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
-        # raw_messages_result = await db.rawmessage.create_many(all_raw_messages)
-        # processed_conversations_result = await db.processedconversation.create_many(processed_conversations)
+                # Summarize the conversation
+                summary = summarize_conversation(raw_messages)
+                print(summary)
+
+                # Transform the thread into a processed conversation dictionary
+                processed_conversation = {
+                    # Use the timestamp as a unique ID
+                    "summary": summary,  # You need to implement how to generate a summary
+                    "startTime": datetime.fromtimestamp(float(message["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                    "endTime": end_time,
+                    "rawMsgs": {"connect": list(map(lambda msg: {"id": msg["id"]}, raw_messages))},
+                    # Assume user ID is like 'U12345'
+                    "users": {"connect": list(map(lambda user: {"id": user}, users_in_conversation))},
+                }
+                await db.processedconversation.create(processed_conversation)
+                processed_conversations.append(processed_conversation)
+                # append all raw messages to all_row_messages
+                all_raw_messages.extend(raw_messages)
 
         data = {
             "processed_conversations": processed_conversations,

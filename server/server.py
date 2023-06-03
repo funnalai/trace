@@ -56,7 +56,7 @@ async def root():
 @app.get("/slack")
 async def slack():
     try:
-        data = await get_slack_data("C05ASUSECRZ")
+        data = await get_slack_data()
         return data
     except Exception as ex:
         print(ex)
