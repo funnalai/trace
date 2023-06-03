@@ -17,6 +17,7 @@ queryStr = """
             assignee {
                 id
                 name
+                email
             }
         }
     }

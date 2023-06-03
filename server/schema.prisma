@@ -19,18 +19,21 @@ model User {
   rawMessages            RawMessage[]            @relation("UserRawMessages")
   processedConversations ProcessedConversation[] @relation("UserProcessedConversations")
   tickets          Ticket[]            @relation("UserTickets")
-  projects         Project[]           @relation("UserProjects")
+  projects         Project[]           @relation("ProjectUsers")
 }
 
 model Ticket {
-  id               Int                 @id @default(autoincrement()) @unique
-  title            String
-  projectStr       String
-  description      String
-  timeCreated      DateTime 
-  user             User                @relation("UserTickets", fields: [userId], references: [id])
-  userId           Int
+  id          Int       @id @unique @default(autoincrement())
+  linearId    String    @unique
+  title       String
+  projectId   Int?
+  project     Project?  @relation("ProjectTickets", fields: [projectId], references: [id])
+  description String?
+  createdAt   DateTime?
+  user        User?     @relation("UserTickets", fields: [userId], references: [id])
+  userId      Int?
 }
+
 
 model RawMessage {
   id               String @id @unique
@@ -50,14 +53,18 @@ model ProcessedConversation {
   endTime          DateTime
   rawMsgs          RawMessage[]        @relation("ProcessedConversationRawMessages")
   users             User[]                @relation("UserProcessedConversations")
+  projectId Int?
+  project   Project?     @relation("ProjectMessages", fields: [projectId], references: [id])
 }
 
 model Project {
-  id               Int                 @id @default(autoincrement()) @unique
-  // Add your project fields here
-  user             User                @relation("UserProjects", fields: [userId], references: [id])
-  userId           Int
+  id           Int      @id @unique @default(autoincrement())
+  name         String
+  tickets      Ticket[] @relation("ProjectTickets")
+  stakeholders User[]   @relation("ProjectUsers")
+  messages     ProcessedConversation[] @relation("ProjectMessages")
 }
+
 
 model ProcessedMessage {
   id               Int                 @id @default(autoincrement()) @unique

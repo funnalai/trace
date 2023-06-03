@@ -181,7 +181,7 @@ async def get_slack_data(channel):
                         "userId": inner_user.id
                     }
 
-                    reply_message = await db.rawmessage.create(reply_raw_message)
+                    await db.rawmessage.create(reply_raw_message)
 
                     raw_messages.append(reply_raw_message)
 
@@ -190,7 +190,7 @@ async def get_slack_data(channel):
                         float(reply["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
             # Summarize the conversation
-            summary = ""  # summarize_conversation(raw_messages)
+            summary = summarize_conversation(raw_messages)
             print(summary)
 
             # Transform the thread into a processed conversation dictionary
