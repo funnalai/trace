@@ -161,7 +161,9 @@ async def get_slack_data():
                     "time": datetime.fromtimestamp(float(message["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                     "userId": user.id
                 }
-
+                # if the message id has been seen before, skip it
+                if await db.rawmessage.find_first(where={"id": raw_message["id"]}):
+                    continue
                 await db.rawmessage.create(raw_message)
 
                 raw_messages.append(raw_message)
@@ -194,6 +196,8 @@ async def get_slack_data():
                             "userId": inner_user.id
                         }
 
+                        if await db.rawmessage.find_first(where={"id": reply_raw_message["id"]}):
+                            continue
                         await db.rawmessage.create(reply_raw_message)
 
                         raw_messages.append(reply_raw_message)
