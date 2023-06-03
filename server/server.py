@@ -10,6 +10,7 @@ from sources.linear import get_linear_data
 from sources.db_utils import connect_db
 from utils.classifier import get_conv_classification
 from datetime import datetime
+import json
 
 load_dotenv()
 
@@ -53,16 +54,16 @@ async def root():
         return {"error": "yes"}
 
 
-def parse_processed_conversation(conv: ProcessedConversation):
+def parse_processed_conversation(conv):
     """
     Parse a processed conversation object from the database into a dictionary
     """
     return {
         "id": conv.id,
         "summary": conv.summary,
-        "embedding": JSON.parse(conv.embedding),
-        "createdAt": conv.createdAt,
-        "updatedAt": conv.updatedAt,
+        "embedding": json.loads(conv.embedding),
+        "startTime": conv.startTime,
+        "endTime": conv.endTime,
     }
 
 
@@ -78,7 +79,7 @@ async def get_user(id: str):
         raw_messages = await db.rawmessage.find_many(where={"userId": int(id)}, include={"processedConversations": True})
         processed_conversations = list(map(
             lambda msg: parse_processed_conversation(msg.processedConversations), raw_messages))
-
+        print(processed_conversations)
         # compute similarity between user embeddings and all other user embeddings
 
         # find the top n most similar other embeddings / cluster
