@@ -2,26 +2,6 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 
-# Example conversation data
-dummy_conversations = [
-    {
-        "startTime": "2023-05-30T10:00:00",
-        "endTime": "2023-05-30T11:30:00",
-        "summary": "Conversation 1"
-    },
-    {
-        "startTime": "2023-05-30T12:00:00",
-        "endTime": "2023-05-30T13:00:00",
-        "summary": "Conversation 2"
-    },
-    {
-        "startTime": "2023-05-30T14:00:00",
-        "endTime": "2023-05-30T15:30:00",
-        "summary": "Conversation 3"
-    }
-]
-
-
 def view_time_conversations(conversations):
     # Sort conversations based on start time
     sorted_conversations = sorted(
@@ -30,19 +10,33 @@ def view_time_conversations(conversations):
     # Create a figure and axis
     fig, ax = plt.subplots()
 
+    # Dictionary to track y-values for each projectId
+    project_y_values = {}
+
     # Plot each conversation as a horizontal line
-    for i, conv in enumerate(sorted_conversations):
-        start_time = datetime.fromisoformat(conv["startTime"])
-        end_time = datetime.fromisoformat(conv["endTime"])
-        y = i + 1  # y-value for each conversation, incrementing by 1
+    for conv in sorted_conversations:
+        start_time = datetime.strptime(
+            conv["startTime"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        end_time = datetime.strptime(conv["endTime"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        project_id = conv["projectId"]
+
+        if project_id not in project_y_values:
+            # Assign a new y-value for the projectId
+            y = len(project_y_values) + 1
+            project_y_values[project_id] = y
+        else:
+            # Reuse the existing y-value for the projectId
+            y = project_y_values[project_id]
+
         ax.plot([start_time, end_time], [y, y], marker="o")
 
     # Set y-axis limits
-    ax.set_ylim(0.5, len(sorted_conversations) + 0.5)
+    ax.set_ylim(0.5, len(project_y_values) + 0.5)
 
     # Set y-axis ticks and labels
-    y_ticks = list(range(1, len(sorted_conversations) + 1))
-    y_labels = [conv["summary"] for conv in sorted_conversations]
+    y_ticks = list(range(1, len(project_y_values) + 1))
+    # Use projectIds as y-axis labels
+    y_labels = [str(project_id) for project_id in project_y_values.keys()]
     ax.set_yticks(y_ticks)
     ax.set_yticklabels(y_labels)
 
@@ -55,7 +49,7 @@ def view_time_conversations(conversations):
 
     # Set axis labels and title
     ax.set_xlabel("Time")
-    ax.set_ylabel("Conversation")
+    ax.set_ylabel("Project ID")  # Change y-axis label to "Project ID"
     ax.set_title("Conversations Over Time")
 
     plt.tight_layout()
