@@ -33,13 +33,14 @@ model Ticket {
 }
 
 model RawMessage {
-  id               Int                 @id @default(autoincrement()) @unique
+  id               String @id @unique
   text             String
   time             DateTime
   processedMsg     ProcessedMessage?   @relation("RawMessageProcessedMessage")
   user             User                @relation("UserRawMessages", fields: [userId], references: [id])
   userId           Int
-  processedConversations ProcessedConversation[] @relation("ProcessedConversationRawMessages")
+  processedConversations ProcessedConversation? @relation("ProcessedConversationRawMessages", fields: [processedConversationId], references: [id])
+  processedConversationId Int?
 }
 
 model ProcessedConversation {
@@ -48,8 +49,7 @@ model ProcessedConversation {
   startTime        DateTime
   endTime          DateTime
   rawMsgs          RawMessage[]        @relation("ProcessedConversationRawMessages")
-  user             User                @relation("UserProcessedConversations", fields: [userId], references: [id])
-  userId           Int
+  user             User[]                @relation("UserProcessedConversations")
 }
 
 model Project {
@@ -63,5 +63,5 @@ model ProcessedMessage {
   id               Int                 @id @default(autoincrement()) @unique
   // Add your processed message fields here
   rawMsg           RawMessage?         @relation("RawMessageProcessedMessage", fields: [rawMsgId], references: [id])
-  rawMsgId         Int?               @unique
+  rawMsgId         String?               @unique
 }
