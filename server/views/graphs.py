@@ -5,6 +5,7 @@ from sklearn.cluster import DBSCAN
 from sklearn.manifold import TSNE
 from ..utils.classifier import get_natural_convs_title
 import numpy as np
+import io
 
 
 def vis_convos(data):
@@ -117,4 +118,7 @@ def view_time_conversations(conversations, name):
     ax.set_title(f"What {name} has been talking about")
 
     plt.tight_layout()
-    plt.show()
+    image_stream = io.BytesIO()
+    plt.savefig(image_stream, format='png')
+    image_stream.seek(0)
+    return image_stream.read()
