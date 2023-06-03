@@ -198,7 +198,6 @@ async def get_slack_data():
 
                 # Summarize the conversation
                 summary = summarize_conversation(raw_messages)
-                print(summary)
 
                 # Transform the thread into a processed conversation dictionary
                 processed_conversation = {
