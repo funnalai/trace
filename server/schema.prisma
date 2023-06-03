@@ -13,19 +13,28 @@ datasource db {
 model User {
   id                     Int                     @id @unique @default(autoincrement())
   name                   String
+  email                  String                  @unique
   linearId               String?                 @unique
   slackId                String?                 @unique
   rawMessages            RawMessage[]            @relation("UserRawMessages")
   processedConversations ProcessedConversation[] @relation("UserProcessedConversations")
   tickets                Ticket[]                @relation("UserTickets")
-  projects               String[]
+  projects               Project[]               @relation("ProjectUsers")
+}
+
+model Project {
+  id           Int      @id @unique @default(autoincrement())
+  name         String
+  tickets      Ticket[] @relation("ProjectTickets")
+  stakeholders User[]   @relation("ProjectUsers")
 }
 
 model Ticket {
   id          Int       @id @unique @default(autoincrement())
   linearId    String    @unique
   title       String
-  projectStr  String?
+  projectId   Int?
+  project     Project?  @relation("ProjectTickets", fields: [projectId], references: [id])
   description String?
   createdAt   DateTime?
   user        User?     @relation("UserTickets", fields: [userId], references: [id])
