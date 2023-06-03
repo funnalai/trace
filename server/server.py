@@ -53,12 +53,31 @@ async def root():
         return {"error": "yes"}
 
 
+def parse_processed_conversation(conv: ProcessedConversation):
+    """
+    Parse a processed conversation object from the database into a dictionary
+    """
+    return {
+        "id": conv.id,
+        "summary": conv.summary,
+        "embedding": JSON.parse(conv.embedding),
+        "createdAt": conv.createdAt,
+        "updatedAt": conv.updatedAt,
+    }
+
+
 @app.get("/user")
 async def get_user(id: str):
     try:
         db = await connect_db()
         user = await db.user.find_first(where={"id": int(id)})
         # get user embeddings
+
+        # fetch all processed conversations a user is part of
+        # make a db query to get all raw messages for a user given their id and include the processed conversations as well as the embeddings under processed conversations
+        raw_messages = await db.rawmessage.find_many(where={"userId": int(id)}, include={"processedConversations": True})
+        processed_conversations = list(map(
+            lambda msg: parse_processed_conversation(msg.processedConversations), raw_messages))
 
         # compute similarity between user embeddings and all other user embeddings
 
