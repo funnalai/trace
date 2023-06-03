@@ -57,7 +57,7 @@ async def root():
 async def get_users():
     try:
         db = await connect_db()
-        users = await db.user.find_many({"select": {"id": True, "name": True, "email": True}, "take": 100})
+        users = await db.user.find_many()
         return users
     except Exception as ex:
         print(ex)
