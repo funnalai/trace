@@ -269,5 +269,8 @@ async def map_slack_to_linear():
             classified_proj = await get_project_for_conv(conversation, projects)
             print("classified_proj", classified_proj)
             if classified_proj:
+                # if a previous projectId exists on the conversation, remove it
+                if conversation.projectId:
+                    await db.project.update(where={"id": conversation.projectId}, data={"messages": {"disconnect": {"id": conversation.id}}})
                 await db.processedconversation.update(where={"id": conversation.id}, data={"projectId": classified_proj.id})
                 await db.project.update(where={"id": classified_proj.id}, data={"messages": {"connect": {"id": conversation.id}}})
