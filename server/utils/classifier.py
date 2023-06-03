@@ -1,4 +1,5 @@
 # import langchain
+from langchain import LLMChain, PromptTemplate
 from langchain.llms import OpenAI
 
 import os
@@ -18,3 +19,18 @@ def get_conv_classification(convStr, projNames):
     # make llm call
     response = llm(prompt)
     return response
+
+
+def conversation_keywords(summary):
+    """
+    Generate three keywords about the summary
+    """
+    # return ""
+    llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
+    prompt = PromptTemplate(
+        input_variables=["summary"],
+        template="Create a comma separated list of 3 keywords to represent this summary of a slack conversation{summary}?",
+    )
+    chain = LLMChain(llm=llm, prompt=prompt)
+    words = chain.run(summary)
+    return words

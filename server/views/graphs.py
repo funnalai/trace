@@ -45,7 +45,6 @@ def vis_convos(data, name):
     # Apply DBSCAN clustering
     db = DBSCAN(eps=0.5, min_samples=5).fit(vectors_2d)
     labels = db.labels_
-    print("after dbscan")
 
     # Find the unique labels (cluster IDs).
     unique_labels = set(labels)
@@ -88,6 +87,7 @@ def vis_convos(data, name):
     image_stream = io.BytesIO()
     plt.savefig(image_stream, format='png')
     image_stream.seek(0)
+    plt.close()
     return image_stream
 
 
@@ -152,4 +152,5 @@ def view_time_conversations(conversations, name):
     image_stream = io.BytesIO()
     plt.savefig(image_stream, format='png')
     image_stream.seek(0)
+    plt.close()
     return image_stream
