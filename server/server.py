@@ -12,6 +12,7 @@ from utils.classifier import get_conv_classification
 from datetime import datetime
 from views.graphs import view_time_conversations
 import json
+import random
 
 load_dotenv()
 
@@ -59,12 +60,18 @@ def parse_processed_conversation(conv):
     """
     Parse a processed conversation object from the database into a dictionary
     """
+
+    if conv.projectId is None:
+        projectId = conv.projectId = -1
+    else:
+        projectId = conv.projectId
     return {
         "id": conv.id,
         "summary": conv.summary,
         "embedding": json.loads(conv.embedding),
         "startTime": conv.startTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "endTime": conv.endTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+        "projectId": projectId
     }
 
 
@@ -89,7 +96,7 @@ async def get_user(id: str):
         raw_messages = await db.rawmessage.find_many(where={"userId": int(id)}, include={"processedConversations": True})
         processed_conversations = list(map(
             lambda msg: parse_processed_conversation(msg.processedConversations), raw_messages))
-        view_time_conversations(processed_conversations[-10:])
+        view_time_conversations(processed_conversations[-10:], user.name)
 
         # write processed_converstations to a file
         # with open('./processed_conversations.json', 'w') as f:
