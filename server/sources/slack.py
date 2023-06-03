@@ -161,3 +161,7 @@ async def get_slack_data(channel):
         # print line number
         print(ex)
         return {"status": 400, "error": "Slack API call failed"}
+
+
+if __name__ == "__main__":
+    print(get_slack_data("C01UZ8XJN1Z"))
