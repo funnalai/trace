@@ -140,7 +140,8 @@ def view_time_conversations(conversations, name):
     ax.set_title(f"What {name} has been talking about")
 
     plt.tight_layout()
+    # plt.show()
     image_stream = io.BytesIO()
     plt.savefig(image_stream, format='png')
     image_stream.seek(0)
-    return image_stream.read()
+    return image_stream

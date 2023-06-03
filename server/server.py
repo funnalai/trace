@@ -9,8 +9,10 @@ from prisma import Prisma
 from sources.linear import get_linear_data
 from sources.db_utils import connect_db
 from utils.classifier import get_conv_classification
+from utils.s3 import upload_image_to_s3
 from datetime import datetime
 from views.graphs import view_time_conversations, vis_convos
+import os
 import json
 import random
 
@@ -93,12 +95,12 @@ async def get_user_graphs(id: str):
         processed_conversations = list(map(
             lambda msg: parse_processed_conversation(msg.processedConversations), raw_messages))
 
-        time = view_time_conversations(
+        time_graph = view_time_conversations(
             processed_conversations[-10:], user.name)
 
-        # send back time which is a bytesIO object encoding the image
-        return time
-
+        result = await upload_image_to_s3(time_graph, os.getenv("S3_BUCKET"), f"""{user.name}-time-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
+        print(result)
+        return ""
     except Exception as ex:
         print(ex)
         raise HTTPException(status_code=400, detail="Error getting user")
