@@ -3,8 +3,30 @@ import matplotlib.dates as mdates
 from datetime import datetime
 from sklearn.cluster import DBSCAN
 from sklearn.manifold import TSNE
-from ..utils.classifier import get_natural_convs_title
+from langchain.docstore.document import Document
+from langchain.chains.summarize import load_summarize_chain
+from langchain.llms import OpenAI
+from langchain import PromptTemplate
 import numpy as np
+
+
+def get_natural_convs_title(summaries):
+    """
+    Create few-word, topic-based summarization of a list of conversation summaries
+    """
+    llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
+    docs = [Document(page_content=text) for text in summaries]
+    prompt = """
+    Write a title for the following summaries of conversations
+    "{text}"
+    TITLE:
+    """
+    prompt_template = PromptTemplate(template=prompt, input_variables=["text"])
+
+    summarize_chain = load_summarize_chain(
+        llm, chain_type="stuff", prompt=prompt_template)
+    title = summarize_chain.run(docs)
+    return title
 
 
 def vis_convos(data):
