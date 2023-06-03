@@ -1,7 +1,7 @@
 *.DS_Store
 server/.venv
 server/**/__pycache__
-server/.env
+*.env
 
 # dependencies
 frontend/node_modules
@@ -12,7 +12,7 @@ frontend/node_modules
 frontend/coverage
 
 # next.js
-/.next/
+frontend/.next/
 frontend/out/
 
 # production

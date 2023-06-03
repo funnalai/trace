@@ -53,6 +53,17 @@ async def root():
         return {"error": "yes"}
 
 
+@app.get("/users")
+async def get_users():
+    try:
+        db = await connect_db()
+        users = await db.user.find_many()
+        return users
+    except Exception as ex:
+        print(ex)
+        raise HTTPException(status_code=400, detail="Error getting users")
+
+
 @app.get("/slack")
 async def slack():
     try:
