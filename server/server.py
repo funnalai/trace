@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 from prisma import Prisma
 from sources.linear import get_linear_data
+from utils.classifier import get_conv_classification
 from datetime import datetime
 
 load_dotenv()
@@ -207,3 +208,38 @@ async def linear():
     return {"status": 200, "success": True, "message": "Issues added to database"}
 
 
+@app.get("/map-slack-to-linear")
+async def map_slack_to_linear():
+    async def get_project_for_conv(conversation, projects):
+        """
+        Given a conversation, get the project it belongs to
+        """
+        convStr = conversation.summary
+        projNames = [proj.name for proj in projects]
+        projClassName = get_conv_classification(convStr, projNames).strip()
+        if projClassName == "None":
+            return None
+        else:
+            # Get the project for projects with the name projClassName
+            project = None
+            for proj in projects:
+                if proj.name == projClassName:
+                    project = proj
+                    break
+            return project
+
+    # Get all users from the database
+    db = await connect_db()
+    if not db:
+        return {"status": 400, "error": "Database connection failed"}
+
+    users = await db.user.find_many()
+    projects = await db.project.find_many()
+    for user in users:
+        # Get all their conversations
+        conversations = await db.processedconversation.find_many(where={"userId": user.id})
+        for conversation in conversations:
+            classified_proj = await get_project_for_conv(conversation, projects)
+            if classified_proj:
+                await db.processedconversation.update(where={"id": conversation.id}, data={"projectId": classified_proj.id})
+                await db.project.update(where={"id": classified_proj.id}, data={"processedConversations": {"connect": {"id": conversation.id}}})
