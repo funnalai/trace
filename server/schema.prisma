@@ -12,22 +12,14 @@ datasource db {
 
 model User {
   id                     Int                     @id @unique @default(autoincrement())
+  email String @unique
   name                   String
-  email                  String                  @unique
   linearId               String?                 @unique
   slackId                String?                 @unique
   rawMessages            RawMessage[]            @relation("UserRawMessages")
   processedConversations ProcessedConversation[] @relation("UserProcessedConversations")
-  tickets                Ticket[]                @relation("UserTickets")
-  projects               Project[]               @relation("ProjectUsers")
-}
-
-model Project {
-  id           Int      @id @unique @default(autoincrement())
-  name         String
-  tickets      Ticket[] @relation("ProjectTickets")
-  stakeholders User[]   @relation("ProjectUsers")
-  messages     ProcessedConversation[] @relation("ProjectMessages")
+  tickets          Ticket[]            @relation("UserTickets")
+  projects         Project[]           @relation("ProjectUsers")
 }
 
 model Ticket {
@@ -42,31 +34,41 @@ model Ticket {
   userId      Int?
 }
 
+
 model RawMessage {
-  id                     Int                     @id @unique @default(autoincrement())
-  text                   String
-  time                   DateTime
-  processedMsg           ProcessedMessage?       @relation("RawMessageProcessedMessage")
-  user                   User                    @relation("UserRawMessages", fields: [userId], references: [id])
-  userId                 Int
-  processedConversations ProcessedConversation[] @relation("ProcessedConversationRawMessages")
+  id               String @id @unique
+  text             String
+  time             DateTime
+  processedMsg     ProcessedMessage?   @relation("RawMessageProcessedMessage")
+  user             User                @relation("UserRawMessages", fields: [userId], references: [id])
+  userId           Int
+  processedConversations ProcessedConversation? @relation("ProcessedConversationRawMessages", fields: [processedConversationId], references: [id])
+  processedConversationId Int?
 }
 
 model ProcessedConversation {
-  id        Int          @id @unique @default(autoincrement())
-  summary   String
-  startTime DateTime
-  endTime   DateTime
-  rawMsgs   RawMessage[] @relation("ProcessedConversationRawMessages")
-  user      User         @relation("UserProcessedConversations", fields: [userId], references: [id])
-  userId    Int
+  id               Int                 @id @default(autoincrement()) @unique
+  summary          String
+  startTime        DateTime
+  endTime          DateTime
+  rawMsgs          RawMessage[]        @relation("ProcessedConversationRawMessages")
+  users             User[]                @relation("UserProcessedConversations")
   projectId Int?
   project   Project?     @relation("ProjectMessages", fields: [projectId], references: [id])
 }
 
+model Project {
+  id           Int      @id @unique @default(autoincrement())
+  name         String
+  tickets      Ticket[] @relation("ProjectTickets")
+  stakeholders User[]   @relation("ProjectUsers")
+  messages     ProcessedConversation[] @relation("ProjectMessages")
+}
+
+
 model ProcessedMessage {
-  id       Int         @id @unique @default(autoincrement())
+  id               Int                 @id @default(autoincrement()) @unique
   // Add your processed message fields here
-  rawMsg   RawMessage? @relation("RawMessageProcessedMessage", fields: [rawMsgId], references: [id])
-  rawMsgId Int?        @unique
+  rawMsg           RawMessage?         @relation("RawMessageProcessedMessage", fields: [rawMsgId], references: [id])
+  rawMsgId         String?               @unique
 }
