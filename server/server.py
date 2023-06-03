@@ -87,6 +87,24 @@ async def linear():
                     return {"status": 400, "error": f"User creation failed {assignee['id']}"}
         return {"status": 200, "success": True, "message": "Users added to database"}
 
+    async def add_projects_to_db(db, issues):
+        """
+        Given a list of issues from Linear, add all projects to the database
+        """
+        for issue in issues:
+            if 'project' in issue and issue['project']:
+                project = issue['project']
+                try:
+                    # We haven't seen this project before
+                    projectStr = project['name']
+                    projectByStr = await db.project.find_first(where={'name': projectStr})
+                    if not projectByStr:
+                        project = await db.project.create({"name": projectStr})
+                except Exception as ex:
+                    print(ex)
+                    return {"status": 400, "error": f"Project creation failed {projectStr}"}
+        return {"status": 200, "success": True, "message": "Projects added to database"}
+
     async def get_user_from_issue(db, issue):
         """
         Given an issue from Linear, get the database user id for the linear id
@@ -106,9 +124,31 @@ async def linear():
         if 'project' in issue and issue['project']:
             project = issue['project']
             projectStr = project['name']
-        else:
-            projectStr = None
-        return projectStr
+            dbProject = await db.project.find_first(where={'name': projectStr})
+            if dbProject:
+                return dbProject
+        return None
+
+    async def add_ticket_to_user(ticket, user):
+        """
+        Given a ticket and a user, add the ticket to the user's tickets
+        """
+        if user:
+            await db.user.update(where={"id": user.id}, data={"tickets": {"connect": {"id": ticket.id}}})
+
+    async def add_ticket_to_project(ticket, project):
+        """
+        Given a ticket and a project, add the ticket to the project's tickets
+        """
+        if project:
+            await db.project.update(where={"id": project.id}, data={"tickets": {"connect": {"id": ticket.id}}})
+
+    async def add_project_to_user(project, user):
+        """
+        Given a project and a user, add the project to the user's projects
+        """
+        if user and project:
+            await db.user.update(where={"id": user.id}, data={"projects": {"connect": {"id": project.id}}})
 
     db = await connect_db()
     if not db:
@@ -128,6 +168,10 @@ async def linear():
     if response['status'] != 200:
         return response
 
+    response = await add_projects_to_db(db, issues)
+    if response['status'] != 200:
+        return response
+
     # add all issues to the database
     for issue in issues:
         try:
@@ -137,30 +181,25 @@ async def linear():
                 continue
 
             user = await get_user_from_issue(db, issue)
-            projectStr = await get_project_from_issue(db, issue)
+            project = await get_project_from_issue(db, issue)
+            await add_project_to_user(project, user)
+
+            projectId = project.id if project else None
 
             query = {
                     "linearId": issue['id'],
                     "title": issue['title'],
                     "description": issue['description'],
                     "createdAt": datetime.strptime(issue['createdAt'], "%Y-%m-%dT%H:%M:%S.%fZ"),
-                    "projectStr": projectStr
                 }
-            if projectStr is not None: query['projectStr'] = projectStr
+            if projectId is not None: query['projectId'] = projectId
             if user is not None: query['userId'] = user.id
 
             # Create the issue
             ticket = await db.ticket.create(query)
+            await add_ticket_to_user(ticket, user)
+            await add_ticket_to_project(ticket, project)
 
-            # Write the ticket to the user if the user exists
-            if user is not None:
-                await db.user.update(where={"id": user.id}, data={"tickets": {"connect": {"id": ticket.id}}})
-                # Write the project to the user project strings list if the project exists
-                if projectStr is not None:
-                    projects = user.projects
-                    if projectStr not in projects:
-                        projects.append(projectStr)
-                        await db.user.update(where={"id": user.id}, data={"projects": {"set": projects}})
         except Exception as ex:
             print(ex)
             return {"status": 400, "error": f"Issue creation failed {issue['id']}"}
