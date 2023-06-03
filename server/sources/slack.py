@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from slack_sdk import WebClient
 from prisma import Prisma
 from slack_sdk.errors import SlackApiError
+import uuid
 
 from langchain.llms import OpenAI
 from langchain import PromptTemplate
@@ -130,13 +131,15 @@ async def get_slack_data(channel):
         for message in result["messages"]:
             # Create a list to hold the raw messages of this conversation
             raw_messages = []
+            users_in_conversation = set()
 
-            message_id = str(message["ts"].replace(".", ""))
             slack_user_id = str(message["user"])
+            message_id = str(message["ts"].replace(".", "")) + slack_user_id
             slack_profile = await get_slack_profile(user_id=slack_user_id, client=client)
 
             # check if user with slackId or email exists in database
             user = await find_or_create_user(slack_profile, db, slack_user_id)
+            users_in_conversation.add(user.id)
 
             # Transform the message into a raw message dictionary and add it to the list
             raw_message = {
@@ -147,9 +150,7 @@ async def get_slack_data(channel):
                 "userId": user.id
             }
 
-            print("raw message : ", raw_message)
-            result_message = await db.rawmessage.create(raw_message)
-            print("result: ", result_message)
+            await db.rawmessage.create(raw_message)
 
             raw_messages.append(raw_message)
 
@@ -164,9 +165,11 @@ async def get_slack_data(channel):
                     if reply["ts"] == message["ts"]:
                         continue  # Skip the message itself
 
-                    reply_message_id = str(reply["ts"].replace(".", ""))
                     slack_reply_user_id = str(reply["user"])
-                    inner_user = await find_or_create_user(reply, db, slack_reply_user_id)
+                    reply_message_id = str(reply["ts"].replace(
+                        ".", "")) + slack_reply_user_id
+                    inner_user = await find_or_create_user(reply, db, reply_message_id)
+                    users_in_conversation.add(inner_user.id)
 
                     # Transform each reply into a raw message dictionary and add it to the list
                     reply_raw_message = {
@@ -196,16 +199,17 @@ async def get_slack_data(channel):
                 "summary": summary,  # You need to implement how to generate a summary
                 "startTime": datetime.fromtimestamp(float(message["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                 "endTime": end_time,
-                "rawMsgs": raw_messages,
+                "rawMsgs": {"connect": list(map(lambda msg: {"id": msg["id"]}, raw_messages))},
                 # Assume user ID is like 'U12345'
-                "userIds": list(set([raw_message["id"] for raw_message in raw_messages])),
+                "users": {"connect": list(map(lambda user: {"id": user}, users_in_conversation))},
             }
+            await db.processedconversation.create(processed_conversation)
             processed_conversations.append(processed_conversation)
             # append all raw messages to all_row_messages
             all_raw_messages.extend(raw_messages)
 
-        raw_messages_result = await db.rawmessage.create_many(all_raw_messages)
-        processed_conversations_result = await db.processedconversation.create_many(processed_conversations)
+        # raw_messages_result = await db.rawmessage.create_many(all_raw_messages)
+        # processed_conversations_result = await db.processedconversation.create_many(processed_conversations)
 
         data = {
             "processed_conversations": processed_conversations,

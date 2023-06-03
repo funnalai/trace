@@ -49,7 +49,7 @@ model ProcessedConversation {
   startTime        DateTime
   endTime          DateTime
   rawMsgs          RawMessage[]        @relation("ProcessedConversationRawMessages")
-  user             User[]                @relation("UserProcessedConversations")
+  users             User[]                @relation("UserProcessedConversations")
 }
 
 model Project {
