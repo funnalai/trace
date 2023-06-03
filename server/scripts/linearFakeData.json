@@ -1,137 +1,352 @@
 [
     {
-        "title": "User Registration",
-        "description": "Implement user registration functionality to allow users to create new accounts.",
-        "status": "In Progress"
+      "id": 1,
+      "title": "Implement user onboarding flow",
+      "description": "Create a seamless onboarding experience for new users.",
+      "status": "Backlog",
+      "project": "Engineering"
     },
     {
-        "title": "User Login",
-        "description": "Develop user login functionality for registered users to access their accounts.",
-        "status": "In Progress"
+      "id": 2,
+      "title": "Design marketing landing page",
+      "description": "Design an attractive and compelling landing page for marketing purposes.",
+      "status": "In Progress",
+      "project": "Design"
     },
     {
-        "title": "Create Project",
-        "description": "Implement the ability for users to create new projects within the project management tool.",
-        "status": "Duplicated"
+      "id": 3,
+      "title": "Fix authentication bug",
+      "description": "Resolve an issue with user authentication not working correctly.",
+      "status": "Completed",
+      "project": "Bugs"
     },
     {
-        "title": "Project Dashboard",
-        "description": "Design and develop a project dashboard to provide an overview of project details, progress, and key metrics.",
-        "status": "Canceled"
+      "id": 4,
+      "title": "Implement AI recommendation engine",
+      "description": "Develop an AI-based recommendation engine to suggest relevant content to users.",
+      "status": "To Do",
+      "project": "Engineering"
     },
     {
-        "title": "Task Management",
-        "description": "Implement task management features, including creating, assigning, and tracking tasks within projects.",
-        "status": "Completed"
+      "id": 5,
+      "title": "Create user feedback form",
+      "description": "Build a form for users to provide feedback on the platform.",
+      "status": "In Progress",
+      "project": "Features"
     },
     {
-        "title": "File Management",
-        "description": "Develop file management capabilities to allow users to upload, store, and share project-related files.",
-        "status": "Canceled"
+      "id": 6,
+      "title": "Optimize database queries",
+      "description": "Improve the performance of database queries for faster response times.",
+      "status": "Canceled",
+      "project": "Engineering"
     },
     {
-        "title": "Collaboration Tools",
-        "description": "Integrate collaboration features such as real-time chat, comments, and notifications for seamless team communication.",
-        "status": "In Progress"
+      "id": 7,
+      "title": "Implement email notifications",
+      "description": "Set up automated email notifications for user events and updates.",
+      "status": "Backlog",
+      "project": "Engineering"
     },
     {
-        "title": "Project Timeline",
-        "description": "Create a visual project timeline to display milestones, deadlines, and task dependencies.",
-        "status": "Duplicated"
+      "id": 8,
+      "title": "Redesign user interface",
+      "description": "Revamp the user interface to enhance usability and visual appeal.",
+      "status": "Duplicated",
+      "project": "Design"
     },
     {
-        "title": "Resource Allocation",
-        "description": "Implement resource management features to allocate and track team members' availability and workload.",
-        "status": "Backlog"
+      "id": 9,
+      "title": "Fix rendering issue on mobile devices",
+      "description": "Resolve a problem with the platform not rendering correctly on mobile devices.",
+      "status": "To Do",
+      "project": "Bugs"
     },
     {
-        "title": "Reporting and Analytics",
-        "description": "Design and develop reporting and analytics capabilities to provide insights into project performance and productivity.",
-        "status": "Completed"
+      "id": 10,
+      "title": "Create user analytics dashboard",
+      "description": "Develop a dashboard to provide users with insights and analytics on their AI models.",
+      "status": "Completed",
+      "project": "Features"
     },
     {
-        "title": "Integration with Third-Party Tools",
-        "description": "Integrate the project management tool with popular third-party tools such as calendars, version control systems, or communication platforms.",
-        "status": "Canceled"
+      "id": 11,
+      "title": "Implement user role management",
+      "description": "Allow administrators to assign different roles and permissions to users.",
+      "status": "In Progress",
+      "project": "Engineering"
     },
     {
-        "title": "User Roles and Permissions",
-        "description": "Implement role-based access control to define different user roles and their permissions within projects.",
-        "status": "In Progress"
+      "id": 12,
+      "title": "Design platform logo",
+      "description": "Create a unique and memorable logo for the AI management platform.",
+      "status": "Backlog",
+      "project": "Design"
     },
     {
-        "title": "Mobile App Development",
-        "description": "Develop a mobile application for seamless access to the project management tool on mobile devices.",
-        "status": "Completed"
+      "id": 13,
+      "title": "Fix data synchronization bug",
+      "description": "Investigate and fix an issue with data not synchronizing properly across devices.",
+      "status": "Completed",
+      "project": "Bugs"
     },
     {
-        "title": "Data Security and Privacy",
-        "description": "Ensure data security and privacy measures are in place to protect sensitive project information.",
-        "status": "Backlog"
+      "id": 14,
+      "title": "Improve search functionality",
+      "description": "Enhance the search feature to provide more accurate and relevant results.",
+      "status": "To Do",
+      "project": "Features"
     },
     {
-        "title": "Notifications and Reminders",
-        "description": "Implement email or in-app notifications and reminders for upcoming deadlines, task assignments, and project updates.",
-        "status": "In Progress"
+      "id": 15,
+      "title": "Implement two-factor authentication",
+      "description": "Add an extra layer of security with two-factor authentication for user accounts.",
+      "status": "In Progress",
+      "project": "Engineering"
     },
     {
-        "title": "Customization and Branding",
-        "description": "Allow users to customize the project management tool's interface and branding to align with their company's identity.",
-        "status": "Duplicated"
+      "id": 16,
+      "title": "Update color scheme",
+      "description": "Refresh the platform's color scheme to align with the latest design trends.",
+      "status": "Canceled",
+      "project": "Design"
     },
     {
-        "title": "API Development",
-        "description": "Design and develop a robust API to enable integration with other systems and facilitate data exchange.",
-        "status": "Canceled"
+      "id": 17,
+      "title": "Improve error handling",
+      "description": "Enhance error messages and error handling mechanisms for a better user experience.",
+      "status": "Backlog",
+      "project": "Engineering"
     },
     {
-        "title": "Design Team Onboarding",
-        "description": "Create an onboarding process for new design team members.",
-        "status": "Todo"
+      "id": 18,
+      "title": "Create user documentation",
+      "description": "Write comprehensive documentation to help users navigate and understand the platform.",
+      "status": "Duplicated",
+      "project": "Documentation"
     },
     {
-        "title": "Marketing Campaign Planning",
-        "description": "Collaborate with the marketing team to plan upcoming campaigns.",
-        "status": "In Progress"
+      "id": 19,
+      "title": "Fix performance bottleneck",
+      "description": "Identify and resolve a performance bottleneck that is slowing down the platform.",
+      "status": "To Do",
+      "project": "Bugs"
     },
     {
-        "title": "UI/UX Improvements",
-        "description": "Conduct a review of the user interface and implement necessary improvements.",
-        "status": "Todo"
+      "id": 20,
+      "title": "Implement data visualization tools",
+      "description": "Integrate data visualization tools to allow users to analyze their AI models visually.",
+      "status": "Completed",
+      "project": "Features"
     },
     {
-        "title": "Brand Identity Development",
-        "description": "Develop the brand identity guidelines for the company.",
-        "status": "Duplicated"
+      "id": 21,
+      "title": "Implement automated testing",
+      "description": "Set up automated tests to ensure the platform's functionalities are working correctly.",
+      "status": "In Progress",
+      "project": "Engineering"
     },
     {
-        "title": "Content Creation",
-        "description": "Create engaging content for marketing materials and social media channels.",
-        "status": "In Progress"
+      "id": 22,
+      "title": "Design user profile page",
+      "description": "Create a visually appealing and informative user profile page.",
+      "status": "Backlog",
+      "project": "Design"
     },
     {
-        "title": "Visual Design for Website",
-        "description": "Design and implement visually appealing layouts and graphics for the company website.",
-        "status": "Completed"
+      "id": 23,
+      "title": "Fix data export bug",
+      "description": "Investigate and fix an issue with data export not functioning properly.",
+      "status": "Completed",
+      "project": "Bugs"
     },
     {
-        "title": "Market Research",
-        "description": "Conduct market research to identify target audience and competitors.",
-        "status": "Todo"
+      "id": 24,
+      "title": "Implement real-time notifications",
+      "description": "Enable real-time notifications for user actions and updates on the platform.",
+      "status": "To Do",
+      "project": "Features"
     },
     {
-        "title": "Social Media Strategy",
-        "description": "Develop a comprehensive social media strategy to increase brand visibility.",
-        "status": "In Progress"
+      "id": 25,
+      "title": "Optimize algorithm performance",
+      "description": "Improve the performance and efficiency of the AI algorithms used in the platform.",
+      "status": "In Progress",
+      "project": "Engineering"
     },
     {
-        "title": "Graphic Design for Advertisements",
-        "description": "Create captivating graphics for advertising campaigns across various platforms.",
-        "status": "Duplicated"
+      "id": 26,
+      "title": "Design data visualization components",
+      "description": "Create reusable components for visualizing data in the platform.",
+      "status": "Canceled",
+      "project": "Design"
     },
     {
-        "title": "Email Marketing Campaign",
-        "description": "Plan and execute an email marketing campaign to engage with customers.",
-        "status": "Completed"
+      "id": 27,
+      "title": "Implement data encryption",
+      "description": "Enhance security by implementing data encryption for sensitive user information.",
+      "status": "Backlog",
+      "project": "Engineering"
+    },
+    {
+      "id": 28,
+      "title": "Create tutorial videos",
+      "description": "Produce instructional videos to guide users on using the platform's features.",
+      "status": "Duplicated",
+      "project": "Documentation"
+    },
+    {
+      "id": 29,
+      "title": "Fix memory leak issue",
+      "description": "Address a memory leak problem that is causing excessive memory usage.",
+      "status": "To Do",
+      "project": "Bugs"
+    },
+    {
+      "id": 30,
+      "title": "Implement collaborative workspace",
+      "description": "Enable multiple users to collaborate on AI projects within the platform.",
+      "status": "Completed",
+      "project": "Features"
+    },
+    {
+      "id": 31,
+      "title": "Refactor codebase for maintainability",
+      "description": "Restructure the codebase to improve maintainability and code quality.",
+      "status": "In Progress",
+      "project": "Engineering"
+    },
+    {
+      "id": 32,
+      "title": "Design dashboard layout",
+      "description": "Create an intuitive and user-friendly layout for the platform's dashboard.",
+      "status": "Backlog",
+      "project": "Design"
+    },
+    {
+      "id": 33,
+      "title": "Fix data import bug",
+      "description": "Investigate and fix an issue with data import not functioning correctly.",
+      "status": "Completed",
+      "project": "Bugs"
+    },
+    {
+      "id": 34,
+      "title": "Implement user feedback system",
+      "description": "Develop a mechanism for users to provide feedback and suggestions directly within the platform.",
+      "status": "To Do",
+      "project": "Features"
+    },
+    {
+      "id": 35,
+      "title": "Optimize API endpoints",
+      "description": "Improve the performance and efficiency of the platform's API endpoints.",
+      "status": "In Progress",
+      "project": "Engineering"
+    },
+    {
+      "id": 36,
+      "title": "Design AI model selection interface",
+      "description": "Create an interface for users to select and manage their AI models.",
+      "status": "Canceled",
+      "project": "Design"
+    },
+    {
+      "id": 37,
+      "title": "Implement user activity log",
+      "description": "Record and display user activity logs for auditing and monitoring purposes.",
+      "status": "Backlog",
+      "project": "Engineering"
+    },
+    {
+      "id": 38,
+      "title": "Create developer documentation",
+      "description": "Write detailed documentation for developers to integrate with the platform's API.",
+      "status": "Duplicated",
+      "project": "Documentation"
+    },
+    {
+      "id": 39,
+      "title": "Fix compatibility issue with external libraries",
+      "description": "Resolve a compatibility problem between the platform and external libraries.",
+      "status": "To Do",
+      "project": "Bugs"
+    },
+    {
+      "id": 40,
+      "title": "Implement model versioning",
+      "description": "Enable users to manage different versions of their AI models.",
+      "status": "Completed",
+      "project": "Features"
+    },
+    {
+      "id": 41,
+      "title": "Implement performance monitoring",
+      "description": "Set up performance monitoring tools to track and optimize the platform's performance.",
+      "status": "In Progress",
+      "project": "Engineering"
+    },
+    {
+      "id": 42,
+      "title": "Design notification system",
+      "description": "Create an intuitive and non-intrusive system for displaying notifications to users.",
+      "status": "Backlog",
+      "project": "Design"
+    },
+    {
+      "id": 43,
+      "title": "Fix data export format",
+      "description": "Modify the data export functionality to support multiple file formats.",
+      "status": "Completed",
+      "project": "Bugs"
+    },
+    {
+      "id": 44,
+      "title": "Implement user permission management",
+      "description": "Allow administrators to define granular permissions for different user roles.",
+      "status": "To Do",
+      "project": "Features"
+    },
+    {
+      "id": 45,
+      "title": "Optimize AI model training",
+      "description": "Improve the efficiency and speed of AI model training within the platform.",
+      "status": "In Progress",
+      "project": "Engineering"
+    },
+    {
+      "id": 46,
+      "title": "Design collaboration features",
+      "description": "Create collaborative features to enable users to work together on AI projects.",
+      "status": "Canceled",
+      "project": "Design"
+    },
+    {
+      "id": 47,
+      "title": "Implement audit trail",
+      "description": "Track and log all user actions for auditing and compliance purposes.",
+      "status": "Backlog",
+      "project": "Engineering"
+    },
+    {
+      "id": 48,
+      "title": "Create user guides",
+      "description": "Write step-by-step user guides to help users navigate and use the platform effectively.",
+      "status": "Duplicated",
+      "project": "Documentation"
+    },
+    {
+      "id": 49,
+      "title": "Fix deployment script issue",
+      "description": "Investigate and fix an issue with the deployment script not working as expected.",
+      "status": "To Do",
+      "project": "Bugs"
+    },
+    {
+      "id": 50,
+      "title": "Implement model performance metrics",
+      "description": "Calculate and display performance metrics for AI models trained within the platform.",
+      "status": "Completed",
+      "project": "Features"
     }
-]
+  ]

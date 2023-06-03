@@ -6,6 +6,8 @@ import random
 
 load_dotenv()
 
+DATAFILE = "/home/amks/pipeline/server/scripts/linearFakeData.json"
+
 # Set up the necessary information
 team_id = "8eb40e26-8d37-4c1c-9818-a3fcc74cb36c"
 project_id = "e93d6499-b3e2-492e-a401-f4b25db91752"
@@ -21,7 +23,7 @@ headers = {
 
 possible_statuses = {
     "Backlog": "1ea9ca9a-0f0b-48f9-9828-c19a627ea9a3",
-    "Todo": "db72454c-cab7-4977-b131-8ca491609efb",
+    "To Do": "db72454c-cab7-4977-b131-8ca491609efb",
     "In Progress": "214c932a-37bd-4ad8-9511-3b88684a3240",
     "Duplicated": "f05fc843-eb3d-49b3-9f59-1ea8facd3a12",
     "Canceled": "b83ca825-10fb-450d-976a-b011bda26f49",
@@ -29,6 +31,7 @@ possible_statuses = {
     "Canceled": "b83ca825-10fb-450d-976a-b011bda26f49",
 }
 
+print(list(possible_statuses.keys()))
 
 def generate_fetch_users_query(team_id):
     query = """
@@ -82,10 +85,48 @@ def generate_mutation(title, description, team_id, project_id, status, user_id):
     """
     return mutation
 
+def generate_mutation_for_adding_projects(team_id, project_name):
+    mutation = f"""
+    mutation ProjectCreate {{
+      projectCreate(
+        input: {{
+          name: "{project_name}"
+          teamIds: ["{team_id}"]
+        }}
+      ) {{
+        success
+        project {{
+          id
+          name
+        }}
+      }}
+    }}
+    """
+    return mutation
+
+def create_projects():
+    with open(DATAFILE) as f:
+        data = json.load(f)
+        projects = list(set([d['project'] for d in data]))
+
+        for project in projects:
+            mutation = generate_mutation_for_adding_projects(team_id, project)
+            response = requests.post(url, headers=headers,
+                                     data=json.dumps({"query": mutation}))
+            # Check the response status
+            if response.status_code == 200:
+                print("Project created successfully!")
+                project_data = response.json()
+                print("project data: ", project_data)
+            else:
+                print("Failed to create the project. Status code:",
+                      response.status_code)
+                print("Error message:", response.text)
+
 
 def create_issue():
     # read linearFakeData.json, pass in the relative path
-    with open("./scripts/linearFakeData.json") as f:
+    with open(DATAFILE) as f:
         data = json.load(f)
         users = fetch_users()
         projects = fetch_projects()
