@@ -136,6 +136,7 @@ async def get_slack_data():
 
             # Iterate over each message in the channel's history
             for message in result["messages"]:
+                print("entered messages")
                 # Create a list to hold the raw messages of this conversation
                 raw_messages = []
                 users_in_conversation = set()
@@ -144,10 +145,13 @@ async def get_slack_data():
                 message_id = str(message["ts"].replace(
                     ".", "")) + slack_user_id
                 slack_profile = await get_slack_profile(user_id=slack_user_id, client=client)
+                print("retrieved slack profile")
 
                 # check if user with slackId or email exists in database
                 user = await find_or_create_user(slack_profile, db, slack_user_id)
                 users_in_conversation.add(user.id)
+
+                print("got user id")
 
                 # Transform the message into a raw message dictionary and add it to the list
                 raw_message = {
@@ -159,6 +163,7 @@ async def get_slack_data():
                 }
 
                 await db.rawmessage.create(raw_message)
+                print("created raw message")
 
                 raw_messages.append(raw_message)
 
@@ -176,8 +181,8 @@ async def get_slack_data():
                         slack_reply_user_id = str(reply["user"])
                         reply_message_id = str(reply["ts"].replace(
                             ".", "")) + slack_reply_user_id
-                        print(reply, slack_reply_user_id)
-                        inner_user = await find_or_create_user(reply, db, slack_reply_user_id)
+                        slack_reply_profile = await get_slack_profile(user_id=slack_reply_user_id, client=client)
+                        inner_user = await find_or_create_user(slack_reply_profile, db, slack_reply_user_id)
                         users_in_conversation.add(inner_user.id)
 
                         # Transform each reply into a raw message dictionary and add it to the list
@@ -231,5 +236,5 @@ async def get_slack_data():
 
     except Exception as ex:
         # print line number
-        print(ex)
+        print("Exception getting data from slack: ", ex)
         raise ex
