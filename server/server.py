@@ -129,7 +129,8 @@ async def parse_processed_conversation(conv):
     # get tags from summary for prettier visualizations
     return {
         "id": conv.id,
-        "summary": conv.summary,  # await replace_ids_with_names(conv.summary),
+        # await replace_ids_with_names(conv.summary),
+        "summary": conv.summary[:30],
         # str_to_np_embed(conv.embedding),
         "embedding": conv.embedding,
         "startTime": conv.startTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
@@ -160,8 +161,8 @@ async def get_user(id: str):
             processed_conversations.append(processed_conv)
 
         # print("before")
-        # time_graph = view_time_conversations(
-        #     processed_conversations[-10:], user.name)
+        time_graph_link = view_time_conversations(
+            processed_conversations[-10:], user.name)
         # print("generated time graph")
         # cluster_graph = vis_convos(processed_conversations[-10:], user.name)
         # print("generated db scan")
@@ -169,10 +170,10 @@ async def get_user(id: str):
         # time_graph_link = await upload_image_to_s3(time_graph, os.getenv("S3_BUCKET"), f"""{user.name}-time-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
         # clusters_graph_link = await upload_image_to_s3(cluster_graph, os.getenv("S3_BUCKET"), f"""{user.name}-clusters-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
         # # copy user into a new dictionary and add the two properties above
-        # userObj = user.dict()
-        # userObj['timeGraph'] = time_graph_link
+        userObj = user.dict()
+        userObj['timeGraphHTML'] = time_graph_link
         # userObj['clustersGraph'] = clusters_graph_link
-        return json.dumps(processed_conversations)
+        return userObj  # json.dumps(processed_conversations)
     except Exception as ex:
         print(ex)
         raise HTTPException(status_code=400, detail="Error getting user")

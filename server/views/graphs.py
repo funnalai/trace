@@ -9,6 +9,10 @@ from langchain.llms import OpenAI
 from langchain import PromptTemplate
 import numpy as np
 import io
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import chart_studio.plotly as py
+from datetime import datetime
 import os
 
 
@@ -96,8 +100,12 @@ def view_time_conversations(conversations, name):
     sorted_conversations = sorted(
         conversations, key=lambda conv: conv["startTime"])
 
-    # Create a figure and axis
-    fig, ax = plt.subplots()
+    # Create a Plotly subplot
+    fig = make_subplots(
+        rows=1, cols=1,
+        shared_yaxes=True,
+        subplot_titles=[f"What {name} has been talking about"]
+    )
 
     # Dictionary to track y-values for each projectId
     project_y_values = {}
@@ -118,39 +126,36 @@ def view_time_conversations(conversations, name):
             # Reuse the existing y-value for the projectId
             y = project_y_values[project_id]
 
-        # Convert start_time and end_time to float
-        start_time_float = mdates.date2num(start_time)
-        end_time_float = mdates.date2num(end_time)
+        fig.add_trace(go.Scatter(
+            x=[start_time, end_time],
+            y=[y, y],
+            mode="lines+markers",
+            marker=dict(symbol="circle", size=10),
+            name=summary
+        ))
 
-        ax.plot([start_time_float, end_time_float], [y, y], marker="o")
-
-        # Add summary text annotation
-        ax.text(start_time_float, y, summary, ha='right', va='center')
-
-    # Set y-axis limits
-    ax.set_ylim(0.5, len(project_y_values) + 0.5)
-
-    # Set y-axis ticks and labels
+    # Set y-axis labels using project IDs
     y_ticks = list(range(1, len(project_y_values) + 1))
-    # Use projectIds as y-axis labels
     y_labels = [str(project_id) for project_id in project_y_values.keys()]
-    ax.set_yticks(y_ticks)
-    ax.set_yticklabels(y_labels)
+    fig.update_yaxes(ticktext=y_labels, tickvals=y_ticks, title="Project ID")
 
     # Format x-axis labels
-    date_format = "%A, %d %B %Y %H:%M"  # Example: Monday, 30 May 2023 10:00
-    ax.xaxis.set_major_formatter(mdates.DateFormatter(date_format))
-    plt.xticks(rotation=45)
+    fig.update_xaxes(
+        tickformat="%A, %d %B %Y %H:%M",  # Example: Monday, 30 May 2023 10:00
+        tickangle=45
+    )
 
-    # Set axis labels and title
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Project ID")  # Change y-axis label to "Project ID"
-    ax.set_title(f"What {name} has been talking about")
+    # Adjust figure layout
+    fig.update_layout(
+        height=600,
+        margin=dict(l=40, r=40, t=40, b=40),
+        paper_bgcolor="white"
+    )
 
-    # plt.tight_layout()
-    # plt.show()
-    image_stream = io.BytesIO()
-    plt.savefig(image_stream, format='png')
-    image_stream.seek(0)
-    plt.close()
-    return image_stream
+    # Save the Plotly visualization as an HTML file
+    output_file = "plotly_visualization.html"
+    fig.write_html(output_file)
+    # read contents of html file and return it as string
+    with open(output_file) as f:
+        html_string = f.read()
+        return html_string
