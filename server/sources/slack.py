@@ -13,6 +13,8 @@ from langchain import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain.docstore.document import Document
 
+from utils.embeddings import get_embeddings
+
 
 load_dotenv()
 
@@ -204,11 +206,13 @@ async def get_slack_data():
                 print("raw messages: ", raw_messages)
                 summary = summarize_conversation(raw_messages)
                 print(summary)
+                embed = str(get_embeddings(summary))
 
                 # Transform the thread into a processed conversation dictionary
                 processed_conversation = {
                     # Use the timestamp as a unique ID
                     "summary": summary,  # You need to implement how to generate a summary
+                    "embedding": embed,
                     "startTime": datetime.fromtimestamp(float(message["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                     "endTime": end_time,
                     "rawMsgs": {"connect": list(map(lambda msg: {"id": msg["id"]}, raw_messages))},
