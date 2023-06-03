@@ -1,4 +1,5 @@
 import io
+import numpy as np
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from preprocessing import return_relevant_document_context
 from pydantic import BaseModel
@@ -10,6 +11,7 @@ from sources.linear import get_linear_data
 from sources.db_utils import connect_db
 from utils.classifier import get_conv_classification
 from datetime import datetime
+from utils.embeddings import get_embeddings,str_to_np_embed
 
 load_dotenv()
 
@@ -51,6 +53,28 @@ async def root():
     except Exception as ex:
         print(ex)
         return {"error": "yes"}
+
+@app.get("/chat")
+async def chat(id: str, input: str):
+    try:
+        db = await connect_db()
+        user = await db.user.find_first(where={"id": int(id)}, include={"processedConversations": True})
+        conversations = user.processedConversations
+        embedding_strs = [conversation.embedding for conversation in conversations]
+        embeddings = [str_to_np_embed(embedding_str) for embedding_str in embedding_strs]
+
+        input_embed = get_embeddings(input)
+        # Find the most similar conversation
+        similarities = [np.dot(input_embed, embedding) for embedding in embeddings]
+        max_similarity = max(similarities)
+        max_similarity_index = similarities.index(max_similarity)
+        # Get the conversation
+        conversation = conversations[max_similarity_index]
+        return {"conversation": conversation}
+
+    except Exception as ex:
+        print(ex)
+        raise HTTPException(status_code=400, detail="Error getting user")
 
 
 @app.get("/user")
