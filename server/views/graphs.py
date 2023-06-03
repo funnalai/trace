@@ -9,6 +9,7 @@ from langchain.llms import OpenAI
 from langchain import PromptTemplate
 import numpy as np
 import io
+import os
 
 
 def get_natural_convs_title(summaries):
@@ -32,15 +33,19 @@ def get_natural_convs_title(summaries):
 
 def vis_convos(data, name):
     # Load the data from the JSON object
-    embeddings = [conv['embedding'] for conv in data]
+    # create a numpy array that is a list of all the embeddings
+
+    embeddings = np.array([conv['embedding'] for conv in data])
     summaries = [conv['summary'] for conv in data]
 
     # Reduce the dimensionality of the vectors
-    vectors_2d = TSNE(n_components=2).fit_transform(embeddings)
+    vectors_2d = TSNE(n_components=2, perplexity=min(len(data) - 2, 30)).fit_transform(
+        embeddings)
 
     # Apply DBSCAN clustering
     db = DBSCAN(eps=0.5, min_samples=5).fit(vectors_2d)
     labels = db.labels_
+    print("after dbscan")
 
     # Find the unique labels (cluster IDs).
     unique_labels = set(labels)
