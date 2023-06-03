@@ -12,6 +12,9 @@ from sources.db_utils import connect_db
 from utils.classifier import get_conv_classification
 from datetime import datetime
 from utils.embeddings import get_embeddings,str_to_np_embed
+from views.graphs import view_time_conversations, vis_convos
+import json
+import random
 
 load_dotenv()
 
@@ -77,11 +80,64 @@ async def chat(id: str, input: str):
         raise HTTPException(status_code=400, detail="Error getting user")
 
 
+def parse_processed_conversation(conv):
+    """
+    Parse a processed conversation object from the database into a dictionary
+    """
+
+    if conv.projectId is None:
+        projectId = conv.projectId = -1
+    else:
+        projectId = conv.projectId
+    return {
+        "id": conv.id,
+        "summary": conv.summary,
+        "embedding": json.loads(conv.embedding),
+        "startTime": conv.startTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+        "endTime": conv.endTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+        "projectId": projectId
+    }
+
+
+# @app.get("/time")
+# async def time():
+#     try:
+#         view_time_conversations(dummy_conversations)
+#     except Exception as ex:
+#         print(ex)
+#         raise ex
+
+
 @app.get("/user")
 async def get_user(id: str):
     try:
         db = await connect_db()
         user = await db.user.find_first(where={"id": int(id)})
+        # get user embeddings
+
+        # fetch all processed conversations a user is part of
+        # make a db query to get all raw messages for a user given their id and include the processed conversations as well as the embeddings under processed conversations
+        raw_messages = await db.rawmessage.find_many(where={"userId": int(id)}, include={"processedConversations": True})
+        processed_conversations = list(map(
+            lambda msg: parse_processed_conversation(msg.processedConversations), raw_messages))
+
+        # TODO: get the actual images to return from the query
+        # view_time_conversations(processed_conversations[-10:])
+        # vis_convos(processed_conversations[-10:])
+
+        # write processed_converstations to a file
+        # with open('./processed_conversations.json', 'w') as f:
+        #     json.dump(processed_conversations, f)
+
+        # compute similarity between user embeddings and all other user embeddings
+
+        # find the top n most similar other embeddings / cluster
+
+        # apply tsne to reduce the dimensionality
+
+        # get labels for the cluster
+
+        # return data to frontend and visualize it
         return user
     except Exception as ex:
         print(ex)
