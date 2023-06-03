@@ -30,7 +30,7 @@ def get_natural_convs_title(summaries):
     return title
 
 
-def vis_convos(data):
+def vis_convos(data, name):
     # Load the data from the JSON object
     embeddings = [conv['embedding'] for conv in data]
     summaries = [conv['summary'] for conv in data]
@@ -77,10 +77,13 @@ def vis_convos(data):
     for centroid, title in zip(centroids, titles):
         plt.annotate(title, centroid)
 
-    # Save the figure
-    plt.savefig('scatter_plot.png', dpi=300)
+    # add a title to this graph
+    plt.title(f"""Cluster of {name}'s conversations""")
 
-    plt.show()
+    image_stream = io.BytesIO()
+    plt.savefig(image_stream, format='png')
+    image_stream.seek(0)
+    return image_stream
 
 
 def view_time_conversations(conversations, name):
@@ -139,7 +142,7 @@ def view_time_conversations(conversations, name):
     ax.set_ylabel("Project ID")  # Change y-axis label to "Project ID"
     ax.set_title(f"What {name} has been talking about")
 
-    plt.tight_layout()
+    # plt.tight_layout()
     # plt.show()
     image_stream = io.BytesIO()
     plt.savefig(image_stream, format='png')

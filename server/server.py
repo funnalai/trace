@@ -13,8 +13,7 @@ from utils.s3 import upload_image_to_s3
 from datetime import datetime
 from views.graphs import view_time_conversations, vis_convos
 import os
-import json
-import random
+import numpy as np
 
 load_dotenv()
 
@@ -67,10 +66,11 @@ def parse_processed_conversation(conv):
         projectId = conv.projectId = -1
     else:
         projectId = conv.projectId
+
     return {
         "id": conv.id,
         "summary": conv.summary,
-        "embedding": json.loads(conv.embedding),
+        "embedding": np.fromstring(conv.embedding),
         "startTime": conv.startTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "endTime": conv.endTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "projectId": projectId
@@ -97,9 +97,10 @@ async def get_user_graphs(id: str):
 
         time_graph = view_time_conversations(
             processed_conversations[-10:], user.name)
+        cluster_graph = vis_convos(processed_conversations[-10:], user.name)
 
-        result = await upload_image_to_s3(time_graph, os.getenv("S3_BUCKET"), f"""{user.name}-time-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
-        print(result)
+        time_graph_link = await upload_image_to_s3(time_graph, os.getenv("S3_BUCKET"), f"""{user.name}-time-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
+        clusters_graph_link = await upload_image_to_s3(cluster_graph, os.getenv("S3_BUCKET"), f"""{user.name}-clusters-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
         return ""
     except Exception as ex:
         print(ex)
@@ -111,6 +112,20 @@ async def get_user(id: str):
     try:
         db = await connect_db()
         user = await db.user.find_first(where={"id": int(id)})
+        raw_messages = await db.rawmessage.find_many(where={"userId": int(id)}, include={"processedConversations": True})
+        processed_conversations = list(map(
+            lambda msg: parse_processed_conversation(msg.processedConversations), raw_messages))
+
+        print("before")
+        time_graph = view_time_conversations(
+            processed_conversations[-10:], user.name)
+        print("after time")
+        cluster_graph = vis_convos(processed_conversations[-10:], user.name)
+
+        time_graph_link = await upload_image_to_s3(time_graph, os.getenv("S3_BUCKET"), f"""{user.name}-time-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
+        clusters_graph_link = await upload_image_to_s3(cluster_graph, os.getenv("S3_BUCKET"), f"""{user.name}-clusters-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
+        user["time_graph"] = time_graph_link
+        user["clusters_graph"] = clusters_graph_link
         return user
     except Exception as ex:
         print(ex)
