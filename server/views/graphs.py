@@ -8,6 +8,8 @@ from langchain.chains.summarize import load_summarize_chain
 from langchain.llms import OpenAI
 from langchain import PromptTemplate
 import numpy as np
+import io
+import os
 
 
 def get_natural_convs_title(summaries):
@@ -29,17 +31,21 @@ def get_natural_convs_title(summaries):
     return title
 
 
-def vis_convos(data):
+def vis_convos(data, name):
     # Load the data from the JSON object
-    embeddings = [conv['embedding'] for conv in data]
+    # create a numpy array that is a list of all the embeddings
+
+    embeddings = np.array([conv['embedding'] for conv in data])
     summaries = [conv['summary'] for conv in data]
 
     # Reduce the dimensionality of the vectors
-    vectors_2d = TSNE(n_components=2).fit_transform(embeddings)
+    vectors_2d = TSNE(n_components=2, perplexity=min(len(data) - 2, 30)).fit_transform(
+        embeddings)
 
     # Apply DBSCAN clustering
     db = DBSCAN(eps=0.5, min_samples=5).fit(vectors_2d)
     labels = db.labels_
+    print("after dbscan")
 
     # Find the unique labels (cluster IDs).
     unique_labels = set(labels)
@@ -76,10 +82,13 @@ def vis_convos(data):
     for centroid, title in zip(centroids, titles):
         plt.annotate(title, centroid)
 
-    # Save the figure
-    plt.savefig('scatter_plot.png', dpi=300)
+    # add a title to this graph
+    plt.title(f"""Cluster of {name}'s conversations""")
 
-    plt.show()
+    image_stream = io.BytesIO()
+    plt.savefig(image_stream, format='png')
+    image_stream.seek(0)
+    return image_stream
 
 
 def view_time_conversations(conversations, name):
@@ -138,5 +147,9 @@ def view_time_conversations(conversations, name):
     ax.set_ylabel("Project ID")  # Change y-axis label to "Project ID"
     ax.set_title(f"What {name} has been talking about")
 
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
+    image_stream = io.BytesIO()
+    plt.savefig(image_stream, format='png')
+    image_stream.seek(0)
+    return image_stream

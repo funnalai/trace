@@ -27,6 +27,7 @@ asyncio = "^3.4.3"
 slack-sdk = "^3.21.3"
 matplotlib = "^3.7.1"
 scikit-learn = "^1.2.2"
+boto3 = "^1.26.146"
 
 
 
