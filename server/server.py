@@ -257,13 +257,17 @@ async def map_slack_to_linear():
     if not db:
         return {"status": 400, "error": "Database connection failed"}
 
-    users = await db.user.find_many()
+    # Get users with all the processed conversations relations
+    users = await db.user.find_many(include={"processedConversations": True})
     projects = await db.project.find_many()
     for user in users:
-        # Get all their conversations
-        conversations = await db.processedconversation.find_many(where={"userId": user.id})
+        # Get all conversations for the user, that is, where user is in the users list
+        conversations = user.processedConversations
+        if not conversations:
+            continue
         for conversation in conversations:
             classified_proj = await get_project_for_conv(conversation, projects)
+            print("classified_proj", classified_proj)
             if classified_proj:
                 await db.processedconversation.update(where={"id": conversation.id}, data={"projectId": classified_proj.id})
-                await db.project.update(where={"id": classified_proj.id}, data={"processedConversations": {"connect": {"id": conversation.id}}})
+                await db.project.update(where={"id": classified_proj.id}, data={"messages": {"connect": {"id": conversation.id}}})
