@@ -154,8 +154,8 @@ async def get_user(id: str):
         print("after time")
         cluster_graph = vis_convos(processed_conversations[-10:], user.name)
 
-        time_graph_link = await upload_image_to_s3(time_graph, os.getenv("S3_BUCKET"), f"""{user.name}-time-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
-        clusters_graph_link = await upload_image_to_s3(cluster_graph, os.getenv("S3_BUCKET"), f"""{user.name}-clusters-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
+        time_graph_link = await upload_image_to_s3(time_graph, os.getenv("S3_BUCKET"), f"""{user.name}-time-{datetime.now().strftime("%Y-%m-%dT")}.png""")
+        clusters_graph_link = await upload_image_to_s3(cluster_graph, os.getenv("S3_BUCKET"), f"""{user.name}-clusters-{datetime.now().strftime("%Y-%m-%dT")}.png""")
         # copy user into a new dictionary and add the two properties above
         userObj = user.dict()
         userObj['timeGraph'] = time_graph_link
