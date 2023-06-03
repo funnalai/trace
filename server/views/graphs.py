@@ -48,7 +48,9 @@ def view_time_conversations(conversations):
 
     # Format x-axis labels
     date_format = "%A, %d %B %Y %H:%M"  # Example: Monday, 30 May 2023 10:00
-    formatted_dates = [date.strftime(date_format) for date in ax.get_xticks()]
+    x_ticks = ax.get_xticks()
+    formatted_dates = [datetime.fromtimestamp(
+        ts).strftime(date_format) for ts in x_ticks]
     ax.set_xticklabels(formatted_dates, rotation=45)
 
     # Set axis labels and title
