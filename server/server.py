@@ -57,11 +57,11 @@ async def root():
 async def get_users():
     try:
         db = await connect_db()
-        users = await db.user.find_many({select: {id: True, name: True, email: True}})
+        users = await db.user.find_many({"select": {"id": True, "name": True, "email": True}, "take": 100})
         return users
     except Exception as ex:
         print(ex)
-        raise HTTPException(status_code=400, detail="Slack API call failed")
+        raise HTTPException(status_code=400, detail="Error getting users")
 
 
 @app.get("/slack")
