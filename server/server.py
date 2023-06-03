@@ -58,6 +58,17 @@ async def get_user(id: str):
     try:
         db = await connect_db()
         user = await db.user.find_first(where={"id": int(id)})
+        # get user embeddings
+
+        # compute similarity between user embeddings and all other user embeddings
+
+        # find the top n most similar other embeddings / cluster
+
+        # apply tsne to reduce the dimensionality
+
+        # get labels for the cluster
+
+        # return data to frontend and visualize it
         return user
     except Exception as ex:
         print(ex)
