@@ -3035,6 +3035,16 @@ files = [
 ]
 
 [[package]]
+name = "sklearn"
+version = "0.0.post5"
+description = "deprecated sklearn package, use scikit-learn instead"
+optional = false
+python-versions = "*"
+files = [
+    {file = "sklearn-0.0.post5.tar.gz", hash = "sha256:7377c714a03a79bbe9196f435db931fd2a6fa8c68514da7ed3a251fd08c52e2c"},
+]
+
+[[package]]
 name = "slack-sdk"
 version = "3.21.3"
 description = "The Slack API Platform SDK for Python"
@@ -3683,4 +3693,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10.1, <4"
-content-hash = "fbd254008085ca8eb5137d7ab5c384e7afaa6b63a625680a096c099f9c5341c6"
+content-hash = "11c54996297633e8f8316f27dcebce57fb8d2091fdd00be2875f335ca08aa28d"
