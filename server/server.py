@@ -157,7 +157,7 @@ async def get_user(id: str):
         cluster_graph_link = vis_convos(processed_conversations, user.name)
         # print("before")
         time_graph_link = view_time_conversations(
-            processed_conversations[-10:], user.name)
+            processed_conversations, user.name)
         # print("generated time graph")
         # print("generated db scan")
 
