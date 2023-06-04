@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Inter } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import styled from "styled-components";
 import { useState } from "react";
 import { useRouter } from "next/router";
@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getChatResponse, getEmployee } from "../../utils/api";
 import { EmployeeDetail } from "../../components/EmployeeDetail";
 
-const inter = Inter({ subsets: ["latin"] });
+const jbm = JetBrains_Mono({ subsets: ["latin"] });
 
 const Container = styled.div``;
 const MainContainer = styled.main``;
@@ -22,16 +22,17 @@ export default function User() {
     });
     console.log(userData);
     return (
-        <MainContainer className={`flex min-h-screen flex-col items-center justify-center p-24 ${inter.className}`}>
+        <MainContainer>
+            <Container className={`flex min-h-screen flex-col items-center justify-center p-24 ${jbm.className}`}>
             <h2 className="text-xl"></h2>
             {isLoading || !userData ? <p>loading...</p> : <EmployeeDetail employee={userData}></EmployeeDetail>}
-            <div className="py-2"></div>
+            </Container>
             <ChatBox userId={userId as string} />
         </MainContainer>
     );
 }
 
-function ChatBox({ userId, userData }: { userId: string; userData: any }) {
+function ChatBox({ userId,  }: { userId: string }) {
     const [input, setInput] = useState("");
     const [output, setOutput] = useState("");
     const [history, setHistory] = useState<string[]>([]);
@@ -46,22 +47,47 @@ function ChatBox({ userId, userData }: { userId: string; userData: any }) {
             setOutput(data);
         });
     };
-
+    // Stick chatbox to bottom right of page, set background to gray
     return (
-        <Container className={`flex min-h-screen flex-col items-center justify-center${inter.className}`}>
-            <h1 className="text-2xl font-bold">Chat</h1>
-            {/* Input for chat */}
+        // Set max width to 400px
+        <Container className={`fixed bottom-5 right-5 p-4 border-2 border-gray-300 bg-gray-100 rounded-md ${jbm.className} shadow-md w-96`}>
+            {output && <div className="py-2 border-2 p-2 mb-4 ">
+                <h3 className="font-bold">Most Relevant Conversation → </h3>
+                <TextDisplay text={output} />
+            </div>}
+            <h1 className={`font-bold pb-2`}>Ask me about anything</h1>
+            <div className="flex flex-col items-start">
             <textarea
                 value={input}
                 onChange={(e) => {
                     setInput(e.target.value);
                 }}
             />
-            <button onClick={submitHandler}>Send</button>
-            <div className="py-2 border-2 p-2">
-                <h3 className="text-xl font-bold">Relevant Conversation</h3>
-                {output && <p>{output}</p>}
+            <button onClick={submitHandler} className="bg-blue-400 text-white p-1 mt-2 rounded-md">Send</button>
             </div>
+
         </Container>
+    );
+}
+
+function TextDisplay({ text }: { text: string }) {
+    const [showMore, setShowMore] = useState(false);
+
+    if (text.length < 100) {
+        return <p className="text-sm">{text}</p>;
+    }
+    if (showMore) {
+        return (
+            <div>
+                <p className="text-sm">{text}</p>
+                <button onClick={() => setShowMore(false)} className=" text-sm text-blue-600">Show Less</button>
+            </div>
+        );
+    }
+    return (
+        <div>
+            <p className="text-sm">{text.slice(0, 100)}...</p>
+            <button onClick={() => setShowMore(true)} className=" text-sm text-blue-600">Show More</button>
+        </div>
     );
 }
