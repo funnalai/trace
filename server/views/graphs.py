@@ -67,6 +67,18 @@ def truncate_text(text, max_length):
     return truncated_text
 
 
+def get_post_hover_preview(data, truncated_summaries):
+    all_hover_previews = []
+    for i in range(len(data)):
+        truncated_summary = truncated_summaries[i]
+        curr_data = data[i]
+        print("curr_data: ", curr_data)
+        strResult = "<a style='none' href='" + curr_data["slackUrl"] + "'" + "><i>Summary:</i><br>" + \
+            ("<br>".join(truncated_summary)) + "</a><extra></extra>"
+        all_hover_previews.append(strResult)
+    return all_hover_previews
+
+
 def vis_convos(data, name):
     # Load the data from the JSON object
     # create a numpy array that is a list of all the embeddings
@@ -74,8 +86,8 @@ def vis_convos(data, name):
     summaries = [conv['summary'] for conv in data]
     truncated_summaries = [truncate_text(
         summary, 30) for summary in summaries]
-    processed_truncated_summaries = list(
-        map(lambda x: "<i>Summary:</i><br>" + ("<br>".join(x)) + "<extra></extra>", truncated_summaries))
+    processed_truncated_summaries = get_post_hover_preview(
+        data, truncated_summaries)
     print("hello: ", processed_truncated_summaries[0])
 
     # Reduce the dimensionality of the vectors

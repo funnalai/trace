@@ -135,17 +135,9 @@ async def parse_processed_conversation(conv):
         "embedding": str_to_np_embed(conv.embedding),
         "startTime": conv.startTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "endTime": conv.endTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-        "projectId": projectId
+        "projectId": projectId,
+        "slackUrl": conv.slackUrl,
     }
-
-
-# @app.get("/time")
-# async def time():
-#     try:
-#         view_time_conversations(dummy_conversations)
-#     except Exception as ex:
-#         print(ex)
-#         raise ex
 
 
 @app.get("/user")
@@ -154,13 +146,15 @@ async def get_user(id: str):
         db = await connect_db()
         user = await db.user.find_first(where={"id": int(id)})
         raw_messages = await db.rawmessage.find_many(where={"userId": int(id)}, include={"processedConversations": True})
+        # fetch the processed conversations from the raw message proccsed conversation field above
+
         processed_conversations = []
 
         for message in raw_messages:
             processed_conv = await parse_processed_conversation(message.processedConversations)
             processed_conversations.append(processed_conv)
 
-        cluster_graph = vis_convos(processed_conversations, user.name)
+        cluster_graph_link = vis_convos(processed_conversations, user.name)
         # print("before")
         time_graph_link = view_time_conversations(
             processed_conversations[-10:], user.name)
@@ -172,7 +166,7 @@ async def get_user(id: str):
         # # copy user into a new dictionary and add the two properties above
         userObj = user.dict()
         userObj['timeGraphHTML'] = time_graph_link
-        userObj['clustersGraph'] = clusters_graph_link
+        userObj['clustersGraph'] = cluster_graph_link
         return userObj  # json.dumps(processed_conversations)
     except Exception as ex:
         print(ex)
@@ -198,6 +192,17 @@ async def slack():
     except Exception as ex:
         print(ex)
         raise HTTPException(status_code=400, detail="Slack API call failed")
+
+
+@app.get("/populate-all")
+async def populate():
+    try:
+        await linear()
+        await slack()
+        await map_slack_to_linear()
+    except Exception as ex:
+        print("Error populating all data: ", ex)
+        raise ex
 
 
 @app.get("/linear")
