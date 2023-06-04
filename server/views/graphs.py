@@ -33,11 +33,11 @@ def get_natural_convs_title(summaries):
     docs = [Document(page_content=t) for t in texts]
 
     prompt_template = """
-        Output 3 diverse key topics of the following conversations. Don't go more than 3. 
+        Output 3 diverse key topics of the following conversations. Don't go more than 3.
         Conversations:
         "{text}"
         Output format should be [keyword1, keyword2, keyword3].
-        
+
         KEYWORDS:
         """
     PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
@@ -245,7 +245,7 @@ def view_time_conversations(conversations, name):
 
     # Format x-axis labels
     fig.update_xaxes(
-        tickformat="%A, %d %B %Y %H:%M",  # Example: Monday, 30 May 2023 10:00
+        tickformat="%m/%d", # Example: 05/30
         tickangle=45
     )
 
