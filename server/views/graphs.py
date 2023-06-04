@@ -159,7 +159,7 @@ def vis_convos(data, name):
 
     # Create layout
     layout = go.Layout(
-        title=f"Cluster of {name}'s conversations",
+        title="",
         showlegend=False,
         xaxis=dict(visible=False),
         yaxis=dict(visible=False),
@@ -194,7 +194,7 @@ def view_time_conversations(conversations, name):
     fig = make_subplots(
         rows=1, cols=1,
         shared_yaxes=True,
-        subplot_titles=[f"What {name} has been talking about"]
+        subplot_titles=[""]
     )
 
     # Dictionary to track y-values for each projectId
