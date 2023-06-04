@@ -42,10 +42,12 @@ def vis_convos(data, name):
     embeddings = np.array([conv['embedding'] for conv in data])
     summaries = [conv['summary'] for conv in data]
 
+    print("before tsne")
     # Reduce the dimensionality of the vectors
     vectors_2d = TSNE(n_components=2, perplexity=min(len(data) - 2, 30)).fit_transform(
         embeddings)
 
+    print("before dbscan")
     # Apply DBSCAN clustering
     db = DBSCAN(eps=0.5, min_samples=5).fit(vectors_2d)
     labels = db.labels_
@@ -67,7 +69,7 @@ def vis_convos(data, name):
         # Feed this list to your title-creating tool.
 
         # This is an example. Replace the following line with your actual tool.
-        title = get_natural_convs_title(cluster_summaries)
+        title = cluster_summaries  # get_natural_convs_title(cluster_summaries)
 
         titles.append(title)
 
@@ -91,7 +93,7 @@ def vis_convos(data, name):
     image_stream = io.BytesIO()
     plt.savefig(image_stream, format='png')
     image_stream.seek(0)
-    plt.close()
+    plt.show()
     return image_stream
 
 

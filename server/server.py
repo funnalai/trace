@@ -130,9 +130,8 @@ async def parse_processed_conversation(conv):
     return {
         "id": conv.id,
         # await replace_ids_with_names(conv.summary),
-        "summary": conv.summary[:30],
-        # str_to_np_embed(conv.embedding),
-        "embedding": conv.embedding,
+        "summary":  conv.embedding,  # conv.summary[:30], ,
+        "embedding": str_to_np_embed(conv.embedding),
         "startTime": conv.startTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "endTime": conv.endTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "projectId": projectId
@@ -160,11 +159,11 @@ async def get_user(id: str):
             processed_conv = await parse_processed_conversation(message.processedConversations)
             processed_conversations.append(processed_conv)
 
+        cluster_graph = vis_convos(processed_conversations[-10:], user.name)
         # print("before")
         time_graph_link = view_time_conversations(
             processed_conversations[-10:], user.name)
         # print("generated time graph")
-        # cluster_graph = vis_convos(processed_conversations[-10:], user.name)
         # print("generated db scan")
 
         # time_graph_link = await upload_image_to_s3(time_graph, os.getenv("S3_BUCKET"), f"""{user.name}-time-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
