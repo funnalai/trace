@@ -66,7 +66,8 @@ def vis_convos(data, name):
     truncated_summaries = [truncate_text(
         summary, 30) for summary in summaries]
     processed_truncated_summaries = list(
-        map(lambda x: "<strong>Summary:</strong><br>" + ("<br>".join(x)), truncated_summaries))
+        map(lambda x: "<i>Summary:</i><br>" + ("<br>".join(x)) + "<extra></extra>", truncated_summaries))
+    print("hello: ", processed_truncated_summaries[0])
 
     # Reduce the dimensionality of the vectors
     vectors_2d = TSNE(n_components=2, perplexity=min(
@@ -98,7 +99,6 @@ def vis_convos(data, name):
         x=[v[0] for v in vectors_2d],
         y=[v[1] for v in vectors_2d],
         hovertemplate=processed_truncated_summaries,
-        hoverinfo="text",
         text=summaries,
         mode="markers",
         marker=dict(color=labels, colorscale="Viridis"),
