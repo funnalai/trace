@@ -31,18 +31,19 @@ export default function User() {
                 </Link>
             </div>
             <Container className={`flex min-h-screen flex-col items-center justify-center p-24 ${jbm.className}`}>
-            <h2 className="text-xl"></h2>
-            {isLoading || !userData ? <p>loading...</p> : <EmployeeDetail employee={userData}></EmployeeDetail>}
+                <h2 className="text-xl"></h2>
+                {isLoading || !userData ? <p>loading...</p> : <EmployeeDetail employee={userData}></EmployeeDetail>}
             </Container>
             <ChatBox userId={userId as string} />
         </MainContainer>
     );
 }
 
-function ChatBox({ userId,  }: { userId: string }) {
+function ChatBox({ userId }: { userId: string }) {
     const [input, setInput] = useState("");
     const [output, setOutput] = useState("");
     const [history, setHistory] = useState<string[]>([]);
+    const [completionResp, setCompletionResp] = useState<string>("");
 
     // Make call to getChatResponse on submitHandler
     const submitHandler = () => {
@@ -51,28 +52,36 @@ function ChatBox({ userId,  }: { userId: string }) {
         getChatResponse(userId, input).then((res) => {
             const data = res["summary"];
             console.log("data", data);
+            setCompletionResp(res["completion"]);
             setOutput(data);
         });
     };
     // Stick chatbox to bottom right of page, set background to gray
     return (
         // Set max width to 400px
-        <Container className={`fixed bottom-5 right-5 p-4 border-2 border-gray-300 bg-gray-100 rounded-md ${jbm.className} shadow-md w-96`}>
-            {output && <div className="py-2 border-2 p-2 mb-4 ">
-                <h3 className="font-bold">Most Relevant Conversation → </h3>
-                <TextDisplay text={output} />
-            </div>}
+        <Container
+            className={`fixed bottom-5 right-5 p-4 border-2 border-gray-300 bg-gray-100 rounded-md ${jbm.className} shadow-md w-96`}
+        >
+            {output && (
+                <div className="py-2 border-2 p-2 mb-4 ">
+                    <h3 className="font-bold">Most Relevant Conversation → </h3>
+                    <TextDisplay text={output} />
+                    <h3 className="font-bold">Answer</h3>
+                    <TextDisplay text={completionResp} />
+                </div>
+            )}
             <h1 className={`font-bold pb-2`}>Ask me about anything</h1>
             <div className="flex flex-col items-start">
-            <textarea
-                value={input}
-                onChange={(e) => {
-                    setInput(e.target.value);
-                }}
-            />
-            <button onClick={submitHandler} className="bg-blue-400 text-white p-1 mt-2 rounded-md">Send</button>
+                <textarea
+                    value={input}
+                    onChange={(e) => {
+                        setInput(e.target.value);
+                    }}
+                />
+                <button onClick={submitHandler} className="bg-blue-400 text-white p-1 mt-2 rounded-md">
+                    Send
+                </button>
             </div>
-
         </Container>
     );
 }
@@ -87,14 +96,18 @@ function TextDisplay({ text }: { text: string }) {
         return (
             <div>
                 <p className="text-sm">{text}</p>
-                <button onClick={() => setShowMore(false)} className=" text-sm text-blue-600">Show Less</button>
+                <button onClick={() => setShowMore(false)} className=" text-sm text-blue-600">
+                    Show Less
+                </button>
             </div>
         );
     }
     return (
         <div>
             <p className="text-sm">{text.slice(0, 100)}...</p>
-            <button onClick={() => setShowMore(true)} className=" text-sm text-blue-600">Show More</button>
+            <button onClick={() => setShowMore(true)} className=" text-sm text-blue-600">
+                Show More
+            </button>
         </div>
     );
 }
