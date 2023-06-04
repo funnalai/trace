@@ -19,6 +19,11 @@ import json
 import os
 import numpy as np
 import re
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.vectorstores import Chroma
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.llms import OpenAI
+from langchain.chains import RetrievalQA
 
 load_dotenv()
 
@@ -104,14 +109,32 @@ async def chat(id: str, input: str):
         # Find the most similar conversation
         similarities = [np.dot(input_embed, embedding)
                         for embedding in embeddings]
+        top_indices = sorted(range(len(similarities)),
+                             key=lambda i: similarities[i], reverse=True)[:5]
         max_similarity = max(similarities)
         max_similarity_index = similarities.index(max_similarity)
         # Get the conversation
         conversation = conversations[max_similarity_index]
+
+        # get the conversations corresponding to the top_indices
+        top_conversations = [conversations[index] for index in top_indices]
+
+        context = ""
+        for top_conv in top_conversations:
+            context += top_conv.summary + "\n"
+
         # For every id in the conversation summary, replace with name using get_name_for_id
         conversation_summary = await replace_ids_with_names(conversation.summary)
+        context_summary = await replace_ids_with_names(context)
 
-        return {"conversation": conversation, "summary": conversation_summary}
+        # make a call to gpt4 to get the answer with the context
+        llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"),
+                     temperature=0.7, max_tokens=500)
+        prompt = f"Using the following context, answer the provided question using only the context. If you don't know the answer, say you don't know, do not make anything up. Context: {context_summary}\n Question: {input}\n Answer: "
+        # make llm call
+        response = llm(prompt)
+
+        return {"conversation": conversation, "summary": conversation_summary, "completion": response}
 
     except Exception as ex:
         print(ex)

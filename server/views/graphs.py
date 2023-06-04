@@ -203,7 +203,7 @@ def view_time_conversations(conversations, name):
     color_map = {}
 
     # Plot each conversation as a horizontal line
-    for conv in unique_conversations:
+    for (i, conv) in enumerate(unique_conversations):
         print("conv: ", conv)
 
         truncated_text = truncate_text(conv["summary"], 30)
@@ -229,6 +229,7 @@ def view_time_conversations(conversations, name):
         fig.add_trace(go.Scatter(
             x=[start_time, end_time],
             y=[y, y],
+            text=i,
             mode="lines+markers",
             # Assign the color to the marker
             marker=dict(symbol="circle", size=10, color=color_map[project_id]),

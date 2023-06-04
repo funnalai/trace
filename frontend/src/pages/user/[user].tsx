@@ -45,6 +45,7 @@ function ChatBox({ userId }: { userId: string }) {
     const [output, setOutput] = useState("");
     const [history, setHistory] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [completionResp, setCompletionResp] = useState<string>("");
 
     // Make call to getChatResponse on submitHandler
     const submitHandler = () => {
@@ -54,6 +55,7 @@ function ChatBox({ userId }: { userId: string }) {
         getChatResponse(userId, input).then((res) => {
             const data = res["summary"];
             console.log("data", data);
+            setCompletionResp(res["completion"]);
             setOutput(data);
             setIsLoading(false);
         });
@@ -81,16 +83,22 @@ function ChatBox({ userId }: { userId: string }) {
                         setInput(e.target.value);
                     }}
                 />
-                <button onClick={submitHandler} className="bg-blue-400 text-white p-1 mt-2 rounded-md">
-                    Send
-                </button>
+                {isLoading ? (
+                    <BounceLoader color={"#60a5fa"} size={30} />
+                ) : (
+                    <button onClick={submitHandler} className="bg-blue-400 text-white p-1 mt-2 rounded-md">
+                        Send
+                    </button>
+                )}
+
                 <div className="py-2"></div>
-                {isLoading && <BounceLoader color={"#60a5fa"} size={30} />}
                 {output && !isLoading && (
-                    <div className="py-2 border-2 p-2 mb-4 ">
+                    <>
                         <h3 className="font-bold">Most Relevant Conversation → </h3>
                         <TextDisplay text={output} />
-                    </div>
+                        <h3 className="font-bold">Answer</h3>
+                        <TextDisplay text={completionResp} />{" "}
+                    </>
                 )}
             </div>
         </Container>
