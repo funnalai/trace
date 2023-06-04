@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { useQuery } from "@tanstack/react-query";
 import { getChatResponse, getEmployee } from "../../utils/api";
 import { EmployeeDetail } from "../../components/EmployeeDetail";
+import Link from "next/link";
 
 const jbm = JetBrains_Mono({ subsets: ["latin"] });
 
@@ -23,6 +24,12 @@ export default function User() {
     console.log(userData);
     return (
         <MainContainer>
+            {/* Back to home Link */}
+            <div className="fixed top-5 left-5">
+                <Link href="/" className={`text-blue-500 text-sm ${jbm.className}`}>
+                    Back to Home
+                </Link>
+            </div>
             <Container className={`flex min-h-screen flex-col items-center justify-center p-24 ${jbm.className}`}>
             <h2 className="text-xl"></h2>
             {isLoading || !userData ? <p>loading...</p> : <EmployeeDetail employee={userData}></EmployeeDetail>}
