@@ -23,9 +23,8 @@ export default function User() {
     console.log(userData);
     return (
         <MainContainer className={`flex min-h-screen flex-col items-center justify-center p-24 ${inter.className}`}>
-            <h2 className="text-xl">
-                {isLoading || !userData ? <p>loading...</p> : <EmployeeDetail employee={userData}></EmployeeDetail>}
-            </h2>
+            <h2 className="text-xl"></h2>
+            {isLoading || !userData ? <p>loading...</p> : <EmployeeDetail employee={userData}></EmployeeDetail>}
             <div className="py-2"></div>
             <ChatBox userId={userId as string} />
         </MainContainer>
