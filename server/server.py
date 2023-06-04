@@ -14,8 +14,10 @@ from utils.s3 import upload_image_to_s3
 from datetime import datetime
 from utils.embeddings import get_embeddings, str_to_np_embed
 from views.graphs import view_time_conversations, vis_convos
+import json
 import os
 import numpy as np
+import re
 
 load_dotenv()
 
@@ -34,6 +36,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+async def replace_ids_with_names(conversation_summary):
+    # currently names are the ids, as 1, 2 and so on. We need to replace these with the actual names
+    # regex for every number
+    conversation_regex = re.compile(r'(\d+)')
+    # for every regex
+    for match in conversation_regex.finditer(conversation_summary):
+        # get the id
+        id = match.group(1)
+        print(id)
+        # get the name
+        name = await get_name_for_id(id)
+        # replace the id with the name
+        if name is not None:
+            conversation_summary = conversation_summary.replace(
+                f'{id}', f'{name}')
+    return str(conversation_summary)
 
 
 class CompletionRequestBody(BaseModel):
@@ -87,22 +107,8 @@ async def chat(id: str, input: str):
         # Get the conversation
         conversation = conversations[max_similarity_index]
         # For every id in the conversation summary, replace with name using get_name_for_id
-        conversation_summary = conversation.summary
-        # currently names are the ids, as 1, 2 and so on. We need to replace these with the actual names
-        import re
-        # regex for every number
-        conversation_regex = re.compile(r'(\d+)')
-        # for every regex
-        for match in conversation_regex.finditer(conversation_summary):
-            # get the id
-            id = match.group(1)
-            print(id)
-            # get the name
-            name = await get_name_for_id(id)
-            # replace the id with the name
-            if name is not None:
-                conversation_summary = conversation_summary.replace(
-                    f'{id}', f'{name}')
+        conversation_summary = replace_ids_with_names(conversation.summary)
+
         return {"conversation": conversation, "summary": conversation_summary}
 
     except Exception as ex:
@@ -110,7 +116,7 @@ async def chat(id: str, input: str):
         raise HTTPException(status_code=400, detail="Error getting user")
 
 
-def parse_processed_conversation(conv):
+async def parse_processed_conversation(conv):
     """
     Parse a processed conversation object from the database into a dictionary
     """
@@ -120,10 +126,13 @@ def parse_processed_conversation(conv):
     else:
         projectId = conv.projectId
 
+    # get tags from summary for prettier visualizations
     return {
         "id": conv.id,
-        "summary": conv.summary,
-        "embedding": str_to_np_embed(conv.embedding),
+        # await replace_ids_with_names(conv.summary),
+        "summary": conv.summary[:30],
+        # str_to_np_embed(conv.embedding),
+        "embedding": conv.embedding,
         "startTime": conv.startTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "endTime": conv.endTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "projectId": projectId
@@ -145,22 +154,26 @@ async def get_user(id: str):
         db = await connect_db()
         user = await db.user.find_first(where={"id": int(id)})
         raw_messages = await db.rawmessage.find_many(where={"userId": int(id)}, include={"processedConversations": True})
-        processed_conversations = list(map(
-            lambda msg: parse_processed_conversation(msg.processedConversations), raw_messages))
+        processed_conversations = []
 
-        print("before")
-        time_graph = view_time_conversations(
+        for message in raw_messages:
+            processed_conv = await parse_processed_conversation(message.processedConversations)
+            processed_conversations.append(processed_conv)
+
+        # print("before")
+        time_graph_link = view_time_conversations(
             processed_conversations[-10:], user.name)
-        print("after time")
-        cluster_graph = vis_convos(processed_conversations[-10:], user.name)
+        # print("generated time graph")
+        # cluster_graph = vis_convos(processed_conversations[-10:], user.name)
+        # print("generated db scan")
 
-        time_graph_link = await upload_image_to_s3(time_graph, os.getenv("S3_BUCKET"), f"""{user.name}-time-{datetime.now().strftime("%Y-%m-%dT")}.png""")
-        clusters_graph_link = await upload_image_to_s3(cluster_graph, os.getenv("S3_BUCKET"), f"""{user.name}-clusters-{datetime.now().strftime("%Y-%m-%dT")}.png""")
-        # copy user into a new dictionary and add the two properties above
+        # time_graph_link = await upload_image_to_s3(time_graph, os.getenv("S3_BUCKET"), f"""{user.name}-time-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
+        # clusters_graph_link = await upload_image_to_s3(cluster_graph, os.getenv("S3_BUCKET"), f"""{user.name}-clusters-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
+        # # copy user into a new dictionary and add the two properties above
         userObj = user.dict()
-        userObj['timeGraph'] = time_graph_link
-        userObj['clustersGraph'] = clusters_graph_link
-        return userObj
+        userObj['timeGraphHTML'] = time_graph_link
+        # userObj['clustersGraph'] = clusters_graph_link
+        return userObj  # json.dumps(processed_conversations)
     except Exception as ex:
         print(ex)
         raise HTTPException(status_code=400, detail="Error getting user")

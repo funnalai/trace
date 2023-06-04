@@ -1,6 +1,8 @@
 import styled from "styled-components";
 
-const Container = styled.div``;
+const Container = styled.div`
+    width: 100%;
+`;
 
 export const EmployeeDetail = ({ employee }: { employee: User }) => {
     // display employee details
@@ -8,8 +10,8 @@ export const EmployeeDetail = ({ employee }: { employee: User }) => {
         <Container>
             <p>{employee.name}</p>
             <p>{employee.email}</p>
-            <img src={employee.timeGraph} alt={"time graph"} />
-            <img src={employee.clustersGraph} alt={"cluster graph"} />
+            <iframe srcDoc={employee.timeGraphHTML} width="100%" height="500px"></iframe>
+            <div className="py-4"></div>
         </Container>
     );
 };
