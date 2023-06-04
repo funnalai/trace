@@ -46,7 +46,6 @@ async def replace_ids_with_names(conversation_summary):
     for match in conversation_regex.finditer(conversation_summary):
         # get the id
         id = match.group(1)
-        print(id)
         # get the name
         name = await get_name_for_id(id)
         # replace the id with the name
@@ -78,13 +77,15 @@ async def root():
         print(ex)
         return {"error": "yes"}
 
+hardcoded_names = {"1": "Will", "2": "Arushi",
+                   "3": "Amir", "4": "Harrison"}
+
 
 async def get_name_for_id(id):
-    db = await connect_db()
-    user = await db.user.find_first(where={"id": int(id)})
+    user = hardcoded_names.get(id, None)
     if user is None:
         return None
-    return user.name
+    return user
 
 
 @app.get("/chat")
@@ -130,7 +131,7 @@ async def parse_processed_conversation(conv):
     return {
         "id": conv.id,
         # await replace_ids_with_names(conv.summary),
-        "summary":  conv.summary[:30],
+        "summary": await replace_ids_with_names(conv.summary),
         "embedding": str_to_np_embed(conv.embedding),
         "startTime": conv.startTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "endTime": conv.endTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
