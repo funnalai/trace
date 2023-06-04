@@ -40,7 +40,8 @@ def get_natural_convs_title(summaries):
         KEYWORDS:
         """
     PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
-    chain = load_summarize_chain(llm, chain_type="map_reduce", return_intermediate_steps=False, map_prompt=PROMPT, combine_prompt=PROMPT)
+    chain = load_summarize_chain(llm, chain_type="map_reduce",
+                                 return_intermediate_steps=False, map_prompt=PROMPT, combine_prompt=PROMPT)
     summary = chain({"input_documents": docs}, return_only_outputs=True)
 
     # Return the summary.
@@ -73,7 +74,7 @@ def get_post_hover_preview(data, truncated_summaries):
         truncated_summary = truncated_summaries[i]
         curr_data = data[i]
         print("curr_data: ", curr_data)
-        strResult = "<a style='none' href='" + curr_data["slackUrl"] + "'" + "><i>Summary:</i><br>" + \
+        strResult = "<a style='color:white' href='" + curr_data["slackUrl"] + "'" + "><i>Summary:</i><br>" + \
             ("<br>".join(truncated_summary)) + "</a><extra></extra>"
         all_hover_previews.append(strResult)
     return all_hover_previews
@@ -126,29 +127,31 @@ def vis_convos(data, name):
         x=[v[0] for v in vectors_2d],
         y=[v[1] for v in vectors_2d],
         mode='markers',
+        text=list(map(lambda x: x['slackUrl'], data)),
         marker=dict(
             color=labels,  # assign color based on remapped labels
             colorscale='Viridis',
             size=20,
-            line=dict(width=0.5, color='gray')  # adding a border to the markers can also help differentiate them
+            # adding a border to the markers can also help differentiate them
+            line=dict(width=0.5, color='gray')
         ),
         hovertemplate=processed_truncated_summaries,
+        hoverlabel=dict(font=dict(color="white"))
     )
 
     # Create figure
     fig = go.Figure(data=[scatter])
     # Hide axis
     # Get the centroid of each cluster and create annotations
-    centroids = [np.mean([vectors_2d[i] for i in range(len(vectors_2d)) if labels[i] == label], axis=0) for label in unique_labels]
-    annotations = [dict(x=centroid[0], y=centroid[1]
-                        , text=title
-                        , showarrow=False,
+    centroids = [np.mean([vectors_2d[i] for i in range(
+        len(vectors_2d)) if labels[i] == label], axis=0) for label in unique_labels]
+    annotations = [dict(x=centroid[0], y=centroid[1], text=title, showarrow=False,
                         font=dict(
                             size=12,  # Specify the font size
                             color='black',  # Specify the font color
                             family='Arial'  # Specify the font family
-                            ))  
-                            for centroid, title in zip(centroids, cleaned_titles)]
+    ))
+        for centroid, title in zip(centroids, cleaned_titles)]
 
     # Create layout
     layout = go.Layout(
