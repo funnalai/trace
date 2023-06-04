@@ -200,6 +200,17 @@ async def slack():
         raise HTTPException(status_code=400, detail="Slack API call failed")
 
 
+@app.get("/populate-all")
+async def populate():
+    try:
+        await linear()
+        await slack()
+        await map_slack_to_linear()
+    except Exception as ex:
+        print("Error populating all data: ", ex)
+        raise ex
+
+
 @app.get("/linear")
 async def linear():
     """
