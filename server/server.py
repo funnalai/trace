@@ -46,7 +46,6 @@ async def replace_ids_with_names(conversation_summary):
     for match in conversation_regex.finditer(conversation_summary):
         # get the id
         id = match.group(1)
-        print(id)
         # get the name
         name = await get_name_for_id(id)
         # replace the id with the name
@@ -78,13 +77,15 @@ async def root():
         print(ex)
         return {"error": "yes"}
 
+hardcoded_names = {"1": "Will", "2": "Arushi",
+                   "3": "Amir", "4": "Harrison"}
+
 
 async def get_name_for_id(id):
-    db = await connect_db()
-    user = await db.user.find_first(where={"id": int(id)})
+    user = hardcoded_names.get(id, None)
     if user is None:
         return None
-    return user.name
+    return user
 
 
 @app.get("/chat")
@@ -130,9 +131,8 @@ async def parse_processed_conversation(conv):
     return {
         "id": conv.id,
         # await replace_ids_with_names(conv.summary),
-        "summary": conv.summary[:30],
-        # str_to_np_embed(conv.embedding),
-        "embedding": conv.embedding,
+        "summary": await replace_ids_with_names(conv.summary),
+        "embedding": str_to_np_embed(conv.embedding),
         "startTime": conv.startTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "endTime": conv.endTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "projectId": projectId
@@ -160,11 +160,11 @@ async def get_user(id: str):
             processed_conv = await parse_processed_conversation(message.processedConversations)
             processed_conversations.append(processed_conv)
 
+        cluster_graph = vis_convos(processed_conversations, user.name)
         # print("before")
         time_graph_link = view_time_conversations(
             processed_conversations[-10:], user.name)
         # print("generated time graph")
-        # cluster_graph = vis_convos(processed_conversations[-10:], user.name)
         # print("generated db scan")
 
         # time_graph_link = await upload_image_to_s3(time_graph, os.getenv("S3_BUCKET"), f"""{user.name}-time-{datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%fZ")}.png""")
@@ -172,7 +172,7 @@ async def get_user(id: str):
         # # copy user into a new dictionary and add the two properties above
         userObj = user.dict()
         userObj['timeGraphHTML'] = time_graph_link
-        # userObj['clustersGraph'] = clusters_graph_link
+        userObj['clustersGraph'] = clusters_graph_link
         return userObj  # json.dumps(processed_conversations)
     except Exception as ex:
         print(ex)
@@ -198,6 +198,17 @@ async def slack():
     except Exception as ex:
         print(ex)
         raise HTTPException(status_code=400, detail="Slack API call failed")
+
+
+@app.get("/populate-all")
+async def populate():
+    try:
+        await linear()
+        await slack()
+        await map_slack_to_linear()
+    except Exception as ex:
+        print("Error populating all data: ", ex)
+        raise ex
 
 
 @app.get("/linear")

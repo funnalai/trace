@@ -16,6 +16,7 @@ export const EmployeeDetail = ({ employee }: { employee: User }) => {
             <div className="border-2 border-gray-300 p-4">
                 <h2 className="text-xl font-bold pb-2">What {employee.name} Talked About This Week</h2>
                 <iframe srcDoc={employee.timeGraphHTML} width="100%" height="500px"></iframe>
+                <iframe srcDoc={employee.clustersGraph} width="100%" height="500px"></iframe>
             </div>
             <div className="py-4"></div>
         </Container>

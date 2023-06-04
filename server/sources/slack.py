@@ -140,6 +140,8 @@ async def get_slack_data():
             for message in result["messages"]:
                 print("entered messages")
                 # Create a list to hold the raw messages of this conversation
+                slackUrl = "https://app.slack.com/client/T05AS05S5FV/" + \
+                    channel + "/" + "p" + message["ts"].replace(".", "")
                 raw_messages = []
                 users_in_conversation = set()
 
@@ -175,10 +177,13 @@ async def get_slack_data():
                 if "thread_ts" in message:
                     thread_result = client.conversations_replies(
                         channel=channel, ts=message["thread_ts"])
+                    if len(thread_result["messages"]) > 0:
+                        slackUrl = "https://app.slack.com/client/T05AS05S5FV/" + \
+                            channel + "/thread/" + \
+                            channel + "-" + message["ts"]
                     for reply in thread_result["messages"]:
                         if reply["ts"] == message["ts"]:
                             continue  # Skip the message itself
-
                         slack_reply_user_id = str(reply["user"])
                         reply_message_id = str(reply["ts"].replace(
                             ".", "")) + slack_reply_user_id
@@ -217,6 +222,7 @@ async def get_slack_data():
                     # Use the timestamp as a unique ID
                     "summary": summary,  # You need to implement how to generate a summary
                     "embedding": embed,
+                    "slackUrl": slackUrl,
                     "startTime": datetime.fromtimestamp(float(message["ts"])).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                     "endTime": end_time,
                     "rawMsgs": {"connect": list(map(lambda msg: {"id": msg["id"]}, raw_messages))},

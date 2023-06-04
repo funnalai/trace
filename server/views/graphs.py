@@ -20,7 +20,8 @@ def get_natural_convs_title(summaries):
     """
     Create few-word, topic-based summarization of a list of conversation summaries
     """
-    llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
+    llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"),
+                 temperature=0)
     docs = [Document(page_content=text) for text in summaries]
     prompt = """
     Write a title for the following summaries of conversations
@@ -30,69 +31,102 @@ def get_natural_convs_title(summaries):
     prompt_template = PromptTemplate(template=prompt, input_variables=["text"])
 
     summarize_chain = load_summarize_chain(
-        llm, chain_type="stuff", prompt=prompt_template)
-    title = summarize_chain.run(docs)
-    return title
+        llm, chain_type="map_reduce")
+    title = summarize_chain({"input_documents": docs},
+                            return_only_outputs=True)
+    print("look here: ", title)
+    return title["output_text"]
+
+
+def truncate_text(text, max_length):
+    words = text.split()  # Split the text into individual words
+    truncated_text = []
+    current_chunk = ""
+
+    for word in words:
+        if len(current_chunk) + len(word) + 1 <= max_length:
+            current_chunk += " " + word  # Add the word to the current chunk
+        else:
+            # Add the completed chunk to the list
+            truncated_text.append(current_chunk.strip())
+            current_chunk = word  # Start a new chunk with the current word
+
+    if current_chunk:
+        # Add the last chunk to the list if it exists
+        truncated_text.append(current_chunk.strip())
+
+    return truncated_text
 
 
 def vis_convos(data, name):
     # Load the data from the JSON object
     # create a numpy array that is a list of all the embeddings
-
     embeddings = np.array([conv['embedding'] for conv in data])
     summaries = [conv['summary'] for conv in data]
+    truncated_summaries = [truncate_text(
+        summary, 30) for summary in summaries]
+    processed_truncated_summaries = list(
+        map(lambda x: "<i>Summary:</i><br>" + ("<br>".join(x)) + "<extra></extra>", truncated_summaries))
+    print("hello: ", processed_truncated_summaries[0])
 
     # Reduce the dimensionality of the vectors
-    vectors_2d = TSNE(n_components=2, perplexity=min(len(data) - 2, 30)).fit_transform(
-        embeddings)
-
+    vectors_2d = TSNE(n_components=2, perplexity=min(
+        len(data) - 2, 30)).fit_transform(embeddings)
     # Apply DBSCAN clustering
     db = DBSCAN(eps=0.5, min_samples=5).fit(vectors_2d)
-    labels = db.labels_
 
+    labels = db.labels_
     # Find the unique labels (cluster IDs).
     unique_labels = set(labels)
-
     titles = []
 
     # For each label...
     for label in unique_labels:
         # Get the indices of the points that belong to the current cluster.
         indices = [i for i, x in enumerate(labels) if x == label]
-
         # Get the summaries corresponding to these indices.
         cluster_summaries = [summaries[i] for i in indices]
-
         # Now, you have a list of all summaries associated with the current cluster.
         # Feed this list to your title-creating tool.
-
         # This is an example. Replace the following line with your actual tool.
-        title = get_natural_convs_title(cluster_summaries)
-
+        # TODO: needs to be fixed to process all the summaries
+        # TODO: get_natural_convs_title(cluster_summaries)
+        title = cluster_summaries[0]
         titles.append(title)
 
-    # Create a scatter plot
-    scatter = plt.scatter([v[0] for v in vectors_2d], [v[1]
-                          for v in vectors_2d], c=labels, cmap='viridis')
+    # Create scatter trace
+    scatter = go.Scatter(
+        x=[v[0] for v in vectors_2d],
+        y=[v[1] for v in vectors_2d],
+        hovertemplate=processed_truncated_summaries,
+        text=summaries,
+        mode="markers",
+        marker=dict(color=labels, colorscale="Viridis"),
+    )
 
-    # Hide the axis
-    plt.axis('off')
-
+    # Create figure
+    fig = go.Figure(data=[scatter])
+    # Hide axis
+    fig.update_layout(showlegend=False, xaxis=dict(
+        visible=False), yaxis=dict(visible=False))
     # Get the centroid of each cluster and annotate
     centroids = [np.mean([vectors_2d[i] for i in range(
         len(vectors_2d)) if labels[i] == label], axis=0) for label in unique_labels]
 
     for centroid, title in zip(centroids, titles):
-        plt.annotate(title, centroid)
+        fig.add_annotation(
+            x=centroid[0], y=centroid[1], text=title, showarrow=False)
 
-    # add a title to this graph
-    plt.title(f"""Cluster of {name}'s conversations""")
+    # Set title
+    fig.update_layout(title=f"""Cluster of {name}’s conversations""")
 
-    image_stream = io.BytesIO()
-    plt.savefig(image_stream, format='png')
-    image_stream.seek(0)
-    plt.close()
-    return image_stream
+    # Save the Plotly visualization as an HTML file
+    output_file = "plotly_clusters_visualization.html"
+    fig.write_html(output_file)
+    # read contents of html file and return it as string
+    with open(output_file) as f:
+        html_string = f.read()
+        return html_string
 
 
 def view_time_conversations(conversations, name):
@@ -153,7 +187,7 @@ def view_time_conversations(conversations, name):
     )
 
     # Save the Plotly visualization as an HTML file
-    output_file = "plotly_visualization.html"
+    output_file = "plotly_time_visualization.html"
     fig.write_html(output_file)
     # read contents of html file and return it as string
     with open(output_file) as f:
