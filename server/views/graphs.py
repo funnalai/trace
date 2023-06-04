@@ -38,11 +38,35 @@ def get_natural_convs_title(summaries):
     return title["output_text"]
 
 
+def truncate_text(text, max_length):
+    words = text.split()  # Split the text into individual words
+    truncated_text = []
+    current_chunk = ""
+
+    for word in words:
+        if len(current_chunk) + len(word) + 1 <= max_length:
+            current_chunk += " " + word  # Add the word to the current chunk
+        else:
+            # Add the completed chunk to the list
+            truncated_text.append(current_chunk.strip())
+            current_chunk = word  # Start a new chunk with the current word
+
+    if current_chunk:
+        # Add the last chunk to the list if it exists
+        truncated_text.append(current_chunk.strip())
+
+    return truncated_text
+
+
 def vis_convos(data, name):
     # Load the data from the JSON object
     # create a numpy array that is a list of all the embeddings
     embeddings = np.array([conv['embedding'] for conv in data])
     summaries = [conv['summary'] for conv in data]
+    truncated_summaries = [truncate_text(
+        summary, 30) for summary in summaries]
+    processed_truncated_summaries = list(
+        map(lambda x: "<strong>Summary:</strong><br>" + ("<br>".join(x)), truncated_summaries))
 
     # Reduce the dimensionality of the vectors
     vectors_2d = TSNE(n_components=2, perplexity=min(
@@ -65,13 +89,17 @@ def vis_convos(data, name):
         # Feed this list to your title-creating tool.
         # This is an example. Replace the following line with your actual tool.
         # TODO: fix natural convs_title
-        title = get_natural_convs_title(cluster_summaries)
+        # TODO: get_natural_convs_title(cluster_summaries)
+        title = cluster_summaries[0]
         titles.append(title)
 
     # Create scatter trace
     scatter = go.Scatter(
         x=[v[0] for v in vectors_2d],
         y=[v[1] for v in vectors_2d],
+        hovertemplate=processed_truncated_summaries,
+        hoverinfo="text",
+        text=summaries,
         mode="markers",
         marker=dict(color=labels, colorscale="Viridis"),
     )
