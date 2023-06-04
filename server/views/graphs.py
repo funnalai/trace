@@ -89,7 +89,7 @@ def vis_convos(data, name):
         # Now, you have a list of all summaries associated with the current cluster.
         # Feed this list to your title-creating tool.
         # This is an example. Replace the following line with your actual tool.
-        # TODO: fix natural convs_title
+        # TODO: needs to be fixed to process all the summaries
         # TODO: get_natural_convs_title(cluster_summaries)
         title = cluster_summaries[0]
         titles.append(title)

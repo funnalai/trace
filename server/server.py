@@ -172,7 +172,7 @@ async def get_user(id: str):
         # # copy user into a new dictionary and add the two properties above
         userObj = user.dict()
         userObj['timeGraphHTML'] = time_graph_link
-        # userObj['clustersGraph'] = clusters_graph_link
+        userObj['clustersGraph'] = clusters_graph_link
         return userObj  # json.dumps(processed_conversations)
     except Exception as ex:
         print(ex)
