@@ -14,6 +14,7 @@ import io
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import chart_studio.plotly as py
+import random
 from datetime import datetime
 import os
 import re
@@ -68,14 +69,18 @@ def truncate_text(text, max_length):
     return truncated_text
 
 
+def generate_summary_link(curr_data, truncated_summary):
+    return "<a style='color:white' href='" + curr_data["slackUrl"] + "'" + "><i>Summary:</i><br>" + \
+        ("<br>".join(truncated_summary)) + "</a><extra></extra>"
+
+
 def get_post_hover_preview(data, truncated_summaries):
     all_hover_previews = []
     for i in range(len(data)):
         truncated_summary = truncated_summaries[i]
         curr_data = data[i]
         print("curr_data: ", curr_data)
-        strResult = "<a style='color:white' href='" + curr_data["slackUrl"] + "'" + "><i>Summary:</i><br>" + \
-            ("<br>".join(truncated_summary)) + "</a><extra></extra>"
+        strResult = generate_summary_link(curr_data, truncated_summary)
         all_hover_previews.append(strResult)
     return all_hover_previews
 
@@ -89,7 +94,6 @@ def vis_convos(data, name):
         summary, 30) for summary in summaries]
     processed_truncated_summaries = get_post_hover_preview(
         data, truncated_summaries)
-    print("hello: ", processed_truncated_summaries[0])
 
     # Reduce the dimensionality of the vectors
     vectors_2d = PCA(n_components=2).fit_transform(embeddings)*10
@@ -175,9 +179,16 @@ def vis_convos(data, name):
 
 
 def view_time_conversations(conversations, name):
+    print("conversations: ", conversations)
     # Sort conversations based on start time
     sorted_conversations = sorted(
         conversations, key=lambda conv: conv["startTime"])
+    unique_conversations = sorted_conversations
+    # seen = set()
+    # for conv in sorted_conversations:
+    #     if conv["projectId"] not in seen:
+    #         unique_conversations.append(conv)
+    #         seen.add(conv["projectId"])
 
     # Create a Plotly subplot
     fig = make_subplots(
@@ -189,8 +200,15 @@ def view_time_conversations(conversations, name):
     # Dictionary to track y-values for each projectId
     project_y_values = {}
 
+    color_map = {}
+
     # Plot each conversation as a horizontal line
-    for conv in sorted_conversations:
+    for conv in unique_conversations:
+        print("conv: ", conv)
+
+        truncated_text = truncate_text(conv["summary"], 30)
+        link = generate_summary_link(conv, truncated_text)
+
         start_time = datetime.strptime(
             conv["startTime"], "%Y-%m-%dT%H:%M:%S.%fZ")
         end_time = datetime.strptime(conv["endTime"], "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -199,18 +217,24 @@ def view_time_conversations(conversations, name):
 
         if project_id not in project_y_values:
             # Assign a new y-value for the projectId
+            # Generate a unique color for each project ID
             y = len(project_y_values) + 1
             project_y_values[project_id] = y
+
+            color = f'rgb({random.randint(0, 255)}, {random.randint(0, 255)}, {random.randint(0, 255)})'
+            color_map[project_id] = color
         else:
-            # Reuse the existing y-value for the projectId
             y = project_y_values[project_id]
 
         fig.add_trace(go.Scatter(
             x=[start_time, end_time],
             y=[y, y],
             mode="lines+markers",
-            marker=dict(symbol="circle", size=10),
-            name=summary
+            # Assign the color to the marker
+            marker=dict(symbol="circle", size=10, color=color_map[project_id]),
+            line=dict(color=color_map[project_id]),
+            opacity=0.8,
+            hovertemplate=link,
         ))
 
     # Set y-axis labels using project IDs
