@@ -50,6 +50,7 @@ model ProcessedConversation {
   id               Int                 @id @default(autoincrement()) @unique
   summary          String
   embedding        String
+  slackUrl         String?
   startTime        DateTime
   endTime          DateTime
   rawMsgs          RawMessage[]        @relation("ProcessedConversationRawMessages")
