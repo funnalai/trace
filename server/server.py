@@ -180,8 +180,8 @@ async def get_user(id: str):
 
         cluster_graph_link = vis_convos(processed_conversations, user.name)
         # print("before")
-        time_graph_link = view_time_conversations(
-            processed_conversations, user.name)
+        time_graph_link = await view_time_conversations(
+            processed_conversations, user.name, db)
         # print("generated time graph")
         # print("generated db scan")
 

@@ -178,7 +178,7 @@ def vis_convos(data, name):
         return html_string
 
 
-def view_time_conversations(conversations, name):
+async def view_time_conversations(conversations, name, db):
     print("conversations: ", conversations)
     # Sort conversations based on start time
     sorted_conversations = sorted(
@@ -199,6 +199,7 @@ def view_time_conversations(conversations, name):
 
     # Dictionary to track y-values for each projectId
     project_y_values = {}
+    project_y_id_names = {}
 
     color_map = {}
 
@@ -215,11 +216,18 @@ def view_time_conversations(conversations, name):
         project_id = conv["projectId"]
         summary = conv["summary"]
 
+        print("project id: ", project_id)
         if project_id not in project_y_values:
             # Assign a new y-value for the projectId
             # Generate a unique color for each project ID
             y = len(project_y_values) + 1
             project_y_values[project_id] = y
+            project = await db.project.find_first(where={"id": project_id})
+            if project:
+                label_y = project.name
+            else:
+                label_y = "Untracked"
+            project_y_id_names[project_id] = label_y
 
             color = f'rgb({random.randint(0, 255)}, {random.randint(0, 255)}, {random.randint(0, 255)})'
             color_map[project_id] = color
@@ -240,12 +248,13 @@ def view_time_conversations(conversations, name):
 
     # Set y-axis labels using project IDs
     y_ticks = list(range(1, len(project_y_values) + 1))
-    y_labels = [str(project_id) for project_id in project_y_values.keys()]
-    fig.update_yaxes(ticktext=y_labels, tickvals=y_ticks, title="Project ID")
+    y_labels = [str(project_label)
+                for project_label in project_y_id_names.values()]
+    fig.update_yaxes(ticktext=y_labels, tickvals=y_ticks, title="Project Name")
 
     # Format x-axis labels
     fig.update_xaxes(
-        tickformat="%m/%d", # Example: 05/30
+        tickformat="%A, %d %B %Y %H:%M",  # Example: 05/30
         tickangle=45
     )
 
