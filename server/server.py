@@ -176,7 +176,7 @@ async def get_user(id: str):
         userObj['clustersGraph'] = cluster_graph
 
         conv_summaries = [conv['summary'] for conv in processed_conversations]
-        meta_summary = get_meta_summary(conv_summaries, user)
+        # meta_summary = get_meta_summary(conv_summaries, user)
         # userObj['metaSummary'] = meta_summary
         return userObj  # json.dumps(processed_conversations)
     except Exception as ex:
