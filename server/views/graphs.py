@@ -3,8 +3,10 @@ import matplotlib.dates as mdates
 from datetime import datetime
 from sklearn.cluster import DBSCAN
 from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 from langchain.docstore.document import Document
 from langchain.chains.summarize import load_summarize_chain
+from langchain.text_splitter import CharacterTextSplitter
 from langchain.llms import OpenAI
 from langchain import PromptTemplate
 import numpy as np
@@ -14,28 +16,36 @@ from plotly.subplots import make_subplots
 import chart_studio.plotly as py
 from datetime import datetime
 import os
+import re
 
 
 def get_natural_convs_title(summaries):
     """
     Create few-word, topic-based summarization of a list of conversation summaries
     """
-    llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"),
-                 temperature=0)
-    docs = [Document(page_content=text) for text in summaries]
-    prompt = """
-    Write a title for the following summaries of conversations
-    "{text}"
-    TITLE:
-    """
-    prompt_template = PromptTemplate(template=prompt, input_variables=["text"])
+    llm = OpenAI(temperature=0.7, max_tokens=200)
+    text_splitter = CharacterTextSplitter(chunk_size=400, chunk_overlap=20)
 
-    summarize_chain = load_summarize_chain(
-        llm, chain_type="map_reduce")
-    title = summarize_chain({"input_documents": docs},
-                            return_only_outputs=True)
-    print("look here: ", title)
-    return title["output_text"]
+    user_text = ' '.join(summaries)[:20000]
+
+    texts = text_splitter.split_text(user_text)
+    docs = [Document(page_content=t) for t in texts]
+
+    prompt_template = """
+        Output 3 diverse key topics of the following conversations. Don't go more than 3. 
+        Conversations:
+        "{text}"
+        Output format should be [keyword1, keyword2, keyword3].
+        
+        KEYWORDS:
+        """
+    PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
+    chain = load_summarize_chain(llm, chain_type="map_reduce",
+                                 return_intermediate_steps=False, map_prompt=PROMPT, combine_prompt=PROMPT)
+    summary = chain({"input_documents": docs}, return_only_outputs=True)
+
+    # Return the summary.
+    return summary['output_text']
 
 
 def truncate_text(text, max_length):
@@ -58,6 +68,18 @@ def truncate_text(text, max_length):
     return truncated_text
 
 
+def get_post_hover_preview(data, truncated_summaries):
+    all_hover_previews = []
+    for i in range(len(data)):
+        truncated_summary = truncated_summaries[i]
+        curr_data = data[i]
+        print("curr_data: ", curr_data)
+        strResult = "<a style='color:white' href='" + curr_data["slackUrl"] + "'" + "><i>Summary:</i><br>" + \
+            ("<br>".join(truncated_summary)) + "</a><extra></extra>"
+        all_hover_previews.append(strResult)
+    return all_hover_previews
+
+
 def vis_convos(data, name):
     # Load the data from the JSON object
     # create a numpy array that is a list of all the embeddings
@@ -65,15 +87,15 @@ def vis_convos(data, name):
     summaries = [conv['summary'] for conv in data]
     truncated_summaries = [truncate_text(
         summary, 30) for summary in summaries]
-    processed_truncated_summaries = list(
-        map(lambda x: "<i>Summary:</i><br>" + ("<br>".join(x)) + "<extra></extra>", truncated_summaries))
+    processed_truncated_summaries = get_post_hover_preview(
+        data, truncated_summaries)
     print("hello: ", processed_truncated_summaries[0])
 
     # Reduce the dimensionality of the vectors
-    vectors_2d = TSNE(n_components=2, perplexity=min(
-        len(data) - 2, 30)).fit_transform(embeddings)
+    vectors_2d = PCA(n_components=2).fit_transform(embeddings)*10
+
     # Apply DBSCAN clustering
-    db = DBSCAN(eps=0.5, min_samples=5).fit(vectors_2d)
+    db = DBSCAN(eps=0.8, min_samples=10).fit(vectors_2d)
 
     labels = db.labels_
     # Find the unique labels (cluster IDs).
@@ -82,43 +104,66 @@ def vis_convos(data, name):
 
     # For each label...
     for label in unique_labels:
-        # Get the indices of the points that belong to the current cluster.
+        # Get the indices of the points that belong to the current cluster
         indices = [i for i, x in enumerate(labels) if x == label]
-        # Get the summaries corresponding to these indices.
+
+        # Get the summaries corresponding to these indices
         cluster_summaries = [summaries[i] for i in indices]
-        # Now, you have a list of all summaries associated with the current cluster.
-        # Feed this list to your title-creating tool.
-        # This is an example. Replace the following line with your actual tool.
-        # TODO: needs to be fixed to process all the summaries
-        # TODO: get_natural_convs_title(cluster_summaries)
-        title = cluster_summaries[0]
+
+        # Now, you have a list of all summaries associated with the current cluster
+        # Feed this list to your title-creating tool
+        print(len(' '.join(cluster_summaries)))
+        # This is an example. Replace the following line with your actual tool
+        title = get_natural_convs_title(cluster_summaries)
+        # title = cluster_summaries
+        print(title)
         titles.append(title)
+
+    pattern = r"^.+(?=1\.)"
+    cleaned_titles = [re.sub(pattern, '', s) for s in titles]
 
     # Create scatter trace
     scatter = go.Scatter(
         x=[v[0] for v in vectors_2d],
         y=[v[1] for v in vectors_2d],
+        mode='markers',
+        text=list(map(lambda x: x['slackUrl'], data)),
+        marker=dict(
+            color=labels,  # assign color based on remapped labels
+            colorscale='Viridis',
+            size=20,
+            # adding a border to the markers can also help differentiate them
+            line=dict(width=0.5, color='gray')
+        ),
         hovertemplate=processed_truncated_summaries,
-        text=summaries,
-        mode="markers",
-        marker=dict(color=labels, colorscale="Viridis"),
+        hoverlabel=dict(font=dict(color="white"))
     )
 
     # Create figure
     fig = go.Figure(data=[scatter])
     # Hide axis
-    fig.update_layout(showlegend=False, xaxis=dict(
-        visible=False), yaxis=dict(visible=False))
-    # Get the centroid of each cluster and annotate
+    # Get the centroid of each cluster and create annotations
     centroids = [np.mean([vectors_2d[i] for i in range(
         len(vectors_2d)) if labels[i] == label], axis=0) for label in unique_labels]
+    annotations = [dict(x=centroid[0], y=centroid[1], text=title, showarrow=False,
+                        font=dict(
+                            size=12,  # Specify the font size
+                            color='black',  # Specify the font color
+                            family='Arial'  # Specify the font family
+    ))
+        for centroid, title in zip(centroids, cleaned_titles)]
 
-    for centroid, title in zip(centroids, titles):
-        fig.add_annotation(
-            x=centroid[0], y=centroid[1], text=title, showarrow=False)
-
+    # Create layout
+    layout = go.Layout(
+        title=f"Cluster of {name}'s conversations",
+        showlegend=False,
+        xaxis=dict(visible=False),
+        yaxis=dict(visible=False),
+        annotations=annotations,
+        hovermode='closest',
+    )
     # Set title
-    fig.update_layout(title=f"""Cluster of {name}’s conversations""")
+    fig = go.Figure(data=[scatter], layout=layout)
 
     # Save the Plotly visualization as an HTML file
     output_file = "plotly_clusters_visualization.html"
