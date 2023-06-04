@@ -19,7 +19,7 @@ export default function Home() {
             </h2>
             <div className="py-2"></div>
             <h3 className="text-2xl font-bold text-gray-600 pb-2">My Employees</h3>
-            {isLoading || !employees ? (
+            {isLoading ? (
                 <p className="font-bold text-gray-400">loading...</p>
             ) : (
                 employees.map((employee, index) => <EmployeeCard employee={employee} key={index} />)

@@ -13,6 +13,7 @@ from utils.classifier import get_conv_classification
 from utils.s3 import upload_image_to_s3
 from datetime import datetime
 from utils.embeddings import get_embeddings, str_to_np_embed
+from utils.summary import get_meta_summary
 from views.graphs import view_time_conversations, vis_convos
 import json
 import os
@@ -172,7 +173,11 @@ async def get_user(id: str):
         # # copy user into a new dictionary and add the two properties above
         userObj = user.dict()
         userObj['timeGraphHTML'] = time_graph_link
-        userObj['clustersGraph'] = clusters_graph_link
+        userObj['clustersGraph'] = cluster_graph
+
+        conv_summaries = [conv['summary'] for conv in processed_conversations]
+        meta_summary = get_meta_summary(conv_summaries, user)
+        # userObj['metaSummary'] = meta_summary
         return userObj  # json.dumps(processed_conversations)
     except Exception as ex:
         print(ex)
