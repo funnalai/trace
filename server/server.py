@@ -107,7 +107,7 @@ async def chat(id: str, input: str):
         # Get the conversation
         conversation = conversations[max_similarity_index]
         # For every id in the conversation summary, replace with name using get_name_for_id
-        conversation_summary = replace_ids_with_names(conversation.summary)
+        conversation_summary = await replace_ids_with_names(conversation.summary)
 
         return {"conversation": conversation, "summary": conversation_summary}
 
