@@ -130,7 +130,7 @@ async def parse_processed_conversation(conv):
     return {
         "id": conv.id,
         # await replace_ids_with_names(conv.summary),
-        "summary":  conv.embedding,  # conv.summary[:30], ,
+        "summary":  conv.summary[:30],
         "embedding": str_to_np_embed(conv.embedding),
         "startTime": conv.startTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "endTime": conv.endTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
@@ -159,7 +159,7 @@ async def get_user(id: str):
             processed_conv = await parse_processed_conversation(message.processedConversations)
             processed_conversations.append(processed_conv)
 
-        cluster_graph = vis_convos(processed_conversations[-10:], user.name)
+        cluster_graph = vis_convos(processed_conversations, user.name)
         # print("before")
         time_graph_link = view_time_conversations(
             processed_conversations[-10:], user.name)

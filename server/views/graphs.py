@@ -38,63 +38,64 @@ def get_natural_convs_title(summaries):
 def vis_convos(data, name):
     # Load the data from the JSON object
     # create a numpy array that is a list of all the embeddings
-
     embeddings = np.array([conv['embedding'] for conv in data])
     summaries = [conv['summary'] for conv in data]
 
-    print("before tsne")
     # Reduce the dimensionality of the vectors
-    vectors_2d = TSNE(n_components=2, perplexity=min(len(data) - 2, 30)).fit_transform(
-        embeddings)
-
-    print("before dbscan")
+    vectors_2d = TSNE(n_components=2, perplexity=min(
+        len(data) - 2, 30)).fit_transform(embeddings)
     # Apply DBSCAN clustering
     db = DBSCAN(eps=0.5, min_samples=5).fit(vectors_2d)
-    labels = db.labels_
 
+    labels = db.labels_
     # Find the unique labels (cluster IDs).
     unique_labels = set(labels)
-
     titles = []
 
     # For each label...
     for label in unique_labels:
         # Get the indices of the points that belong to the current cluster.
         indices = [i for i, x in enumerate(labels) if x == label]
-
         # Get the summaries corresponding to these indices.
         cluster_summaries = [summaries[i] for i in indices]
-
         # Now, you have a list of all summaries associated with the current cluster.
         # Feed this list to your title-creating tool.
-
         # This is an example. Replace the following line with your actual tool.
-        title = cluster_summaries  # get_natural_convs_title(cluster_summaries)
-
+        # TODO: fix natural convs_title
+        title = get_natural_convs_title(cluster_summaries)
         titles.append(title)
 
-    # Create a scatter plot
-    scatter = plt.scatter([v[0] for v in vectors_2d], [v[1]
-                          for v in vectors_2d], c=labels, cmap='viridis')
+    # Create scatter trace
+    scatter = go.Scatter(
+        x=[v[0] for v in vectors_2d],
+        y=[v[1] for v in vectors_2d],
+        mode="markers",
+        marker=dict(color=labels, colorscale="Viridis"),
+    )
 
-    # Hide the axis
-    plt.axis('off')
-
+    # Create figure
+    fig = go.Figure(data=[scatter])
+    # Hide axis
+    fig.update_layout(showlegend=False, xaxis=dict(
+        visible=False), yaxis=dict(visible=False))
     # Get the centroid of each cluster and annotate
     centroids = [np.mean([vectors_2d[i] for i in range(
         len(vectors_2d)) if labels[i] == label], axis=0) for label in unique_labels]
 
     for centroid, title in zip(centroids, titles):
-        plt.annotate(title, centroid)
+        fig.add_annotation(
+            x=centroid[0], y=centroid[1], text=title, showarrow=False)
 
-    # add a title to this graph
-    plt.title(f"""Cluster of {name}'s conversations""")
+    # Set title
+    fig.update_layout(title=f"""Cluster of {name}’s conversations""")
 
-    image_stream = io.BytesIO()
-    plt.savefig(image_stream, format='png')
-    image_stream.seek(0)
-    plt.show()
-    return image_stream
+    # Save the Plotly visualization as an HTML file
+    output_file = "plotly_clusters_visualization.html"
+    fig.write_html(output_file)
+    # read contents of html file and return it as string
+    with open(output_file) as f:
+        html_string = f.read()
+        return html_string
 
 
 def view_time_conversations(conversations, name):
@@ -155,7 +156,7 @@ def view_time_conversations(conversations, name):
     )
 
     # Save the Plotly visualization as an HTML file
-    output_file = "plotly_visualization.html"
+    output_file = "plotly_time_visualization.html"
     fig.write_html(output_file)
     # read contents of html file and return it as string
     with open(output_file) as f:
