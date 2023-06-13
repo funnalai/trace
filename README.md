@@ -1,4 +1,4 @@
-## trace.ai - Boosting Team Productivity, Empowered by Gen AI
+## trace.ai - Boosting Team Productivity, Empowered by Gen AI  🚀 🤖
 
 Tld;r trace is a tool that helps managers be more productive by providing more information about what their employees are actually doing and working on throughout the week. Trace provides more visibility on reporting and accounting for employees time so managers waste less time collecting, sorting, and finding information about their employees (what they worked on, where they're blocked, who they're interfacing with) and more time doing what they do best.
 
@@ -13,35 +13,41 @@ Ticketing platforms like [Linear](https://linear.app/) and [Jira](https://www.at
 ### Demo 
 
 1. Managers navigate to the home page where they will be greeted with a list of their employees, they can click on one to get more information
-   `<img width="1507" alt="Screenshot 2023-06-12 at 11 08 09 PM" src="https://github.com/funnalai/trace/assets/7995105/d9f35d66-afdc-4548-9b94-149692722a92">`
+<!--    `<img width="1507" alt="Screenshot 2023-06-12 at 11 08 09 PM" src="https://github.com/funnalai/trace/assets/7995105/d9f35d66-afdc-4548-9b94-149692722a92">` -->
+   <img src="/assets/screenshots/landing_page.png" alt="Alt Text" width="1500"/>
+
 2. An employee's dashboard currently consists of two graphs and a natural language query engine.
 
 #### Graph 1: Cluster of Slack Discussions
 
 The first graph clusters and summarizes all of the employee's discussions occurring in Slack. You can see the clusters here are segmented by projects in the team's linear work space, so the manager can quickly get a sense on where Will spent most of his time this week.
-`<img width="1509" alt="Screenshot 2023-06-12 at 11 08 33 PM" src="https://github.com/funnalai/trace/assets/7995105/106e2069-989a-47d6-adca-8d781b988af9">`
+<img src="/assets/screenshots/graph_1.png" alt="Alt Text" width="1500"/>
 
 Hovering over one of the dots will provide a summary of this particular discussion thread that the manager can quickly read to get a picture of this particular discussion. In our indexing pipeline, we treat one of these discussions or `ProcessedMessages` as a collection of messages around a particular topic. Concretely, this means one data point is a summary of all of the messages in one particular thread. For initial simplification, we **assume that all messages around a particular topic occur in the thread**.
-`<img width="1508" alt="Screenshot 2023-06-12 at 11 09 02 PM" src="https://github.com/funnalai/trace/assets/7995105/cf0307aa-8def-4264-b264-a96e42babf84">`
+<img src="/assets/screenshots/graph_1_summary.png" alt="Alt Text" width="1500"/>
 
 For context, this is what our Slack setup looks like. Obviously, this is much cleaner that most Slack usage but we thought we would start there first for simplicity.
-`<img width="1220" alt="Screenshot 2023-06-13 at 12 17 19 AM" src="https://github.com/funnalai/trace/assets/7995105/e501588e-a6cd-42bb-9de5-7aa8327beff3">`
+<img src="/assets/screenshots/slack.png" alt="Alt Text" width="1500"/>
 
 In addition to providing the summary, every circle or datapoint, when clicked on will navigate directly to the associated Slack thread for this particular discussion. This allows managers to quickly get more information about a particular discussion thread if they would like to.
 
 #### Graph 2: Time View of Discussions by Projects
 
 The second graph Managers have access to is a time-view of when and what disucssions their employee worked on for the week. The Y-axis displays all of our projects according to our Linear workspace (which for simplicity since we used synthetic data are very high-level) and the x-axis display time. Every dot is as before one particular thread of discussion (called a `trace`). Managers can hover over one of the traces to see the summary as before and click on it to directly link to the Slack thread.
-`<img width="1461" alt="Screenshot 2023-06-12 at 11 08 42 PM" src="https://github.com/funnalai/trace/assets/7995105/75100531-abbd-4443-bf5d-46663164a843">`
+<img src="/assets/screenshots/graph_2.png" alt="Alt Text" width="1500"/>
 
 #### Natural Language Engine
 
 The final affordance to Managers is this chatbot view that allows them to quickly query specific questions about all of the employee's data.
 For any question, Trace will attempt to answer it using the data as well as provide what it thinks is the most relevant discussion thread in Slack that a manager can quickly navigate to in order to get more information. Here's an example of it in action.
+<img src="/assets/screenshots/chatbot.png" alt="Alt Text" width="1500"/>
+<img src="/assets/screenshots/chatbot_show_more.png" alt="Alt Text" width="1500"/>
+<img src="/assets/screenshots/chatbot_show_all.png" alt="Alt Text" width="1500"/>
+<!-- 
 `<img width="1510" alt="Screenshot 2023-06-12 at 11 09 42 PM" src="https://github.com/funnalai/trace/assets/7995105/f1dde9b2-cbc2-4cd8-a6f5-b194fca9a021">`
 `<img width="1501" alt="Screenshot 2023-06-12 at 11 09 55 PM" src="https://github.com/funnalai/trace/assets/7995105/3b64438e-4f41-44ec-a262-a59dc210d568">`
 `<img width="1505" alt="Screenshot 2023-06-12 at 11 10 08 PM" src="https://github.com/funnalai/trace/assets/7995105/0c3ace21-37a9-4158-a428-1acd0e523509">`
-
+ -->
 ### How can I use it?
 
 Right now, the entire repo is configured to hook into `Linear` and `Slack` with access tokens that you provide in the `.env` files. To get this running with your data
