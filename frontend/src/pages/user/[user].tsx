@@ -83,12 +83,25 @@ function ChatBox({ userId }: { userId: string }) {
                         setInput(e.target.value);
                     }}
                 />
+                <div className="py-2"></div>
                 {isLoading ? (
                     <BounceLoader color={"#60a5fa"} size={30} />
                 ) : (
-                    <button onClick={submitHandler} className="bg-blue-400 text-white p-1 mt-2 rounded-md">
-                        Send
-                    </button>
+                    <div className="flex justify-center items-center">
+                        <button onClick={submitHandler} className="bg-blue-400 text-white p-1 mt-2 rounded-md">
+                            Send
+                        </button>
+                        <div className="px-1"></div>
+                        <button
+                            onClick={() => {
+                                setOutput("");
+                                setCompletionResp("");
+                            }}
+                            className="bg-blue-400 text-white p-1 mt-2 rounded-md"
+                        >
+                            Clear
+                        </button>
+                    </div>
                 )}
 
                 <div className="py-2"></div>
