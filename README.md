@@ -41,9 +41,23 @@ For any question, Trace will attempt to answer it using the data as well as prov
 
 
 ### How can I use it?
+Right now, the entire repo is configured to hook into `Linear` and `Slack` with access tokens that you provide in the `.env` files. To get this running with your data
+1. Copy `.env.example` in the `server` and `frontend` folders respectively into `.env` files and add your API keys for all of the keys. `NEXT_PUBLIC_API_URL` is just the route your server is running on (which would be `http://127.0.0.1:8000` if you're running it locally). We use a [hosted PostgresSQL database](https://docs.digitalocean.com/products/databases/postgresql/) so make sure to add the URL from your provider of choice for `DATABASE_URL` in the server
+2. Navigate into the `server` directly and run `poetry shell` to activate the virtual environment. If you don't have [poetry](https://github.com/python-poetry/poetry) which is a package manager for Python, you'll need to install it.
+3. Run the startup script by running `./run.sh`. This should install the dependencies and start the server
+4. Once the server is up and running, in a separate terminal shell, navigate into the `frontend` directory and run `npm install` followed by `npm run dev` 
+5. Once the frontend and server are both running, the first thing you'll need to do is actually index all of your data. There is a route on the server that will do this at `/populate-all` so you can run `curl http://127.0.0.1:8000/populate-all` to start populating the data. Depending on how much data you have, this will take some time. For a Linear project with ~50 tickets, 4 projects, and a Slack workspace with ~200 messages, this usually took around 30 minutes.
+6. Once that endpoint returns, the data should have populated, and you can navigate to `http://localhost:3000` to view it
 
--   `cd server`
--   `poetry shell`
--   if it complains about python, do `which python3` to find path of the executable and do `poetry env use <path/to/executable>`
--   `poetry install` to install the dependencies
--   `make sever`
+
+
+### Challenges
+One of the main challenges we had in getting a simple prototype of this idea working is getting access to high quality data. Because we did not have a startup we could grab their data from, we had to spend a lot of time generating realistic synthetic data in Linear and Slack that we could use to test and visualize to see if this product was helpful. We think the screenshots and demo already show how this can be super helpful in this very small, constructed instance, the usefulness scales with the data, which is to say that any startup or business that actually uses these platforms would have way more Linear and Slack data, which would make the results very informative for managers.
+
+
+### Limitations
+- This currently only works with Slack and Linear, we did not have time to connect other data sources like Zoom, GSuite etc. to triangulate and report all of the information. 
+- We made some simplifying assumptions that are worth nothing 
+  - how the data would structured (i.e. a discussion is all of the messages in a particular thread)
+  - for discussions we could not trianglage onto Linear tickets, we just categorize them as untracked, although we naturally don't have 100% accuracy so some discussions might be missed
+  - we do not do any intelligent post-processing on summarizing the discussion threads like discarding clearly useless messages (like `Joe joined the channel`) or trying to connect discussions happening outside of threads
